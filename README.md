@@ -7,14 +7,38 @@ Welcome to the project repository! This is a monorepo that contains two main com
 The repository is organized as follows:
 
 ```
-project-rook/
-├── ui/
-│   ├── src/
-│   ├── package.json
-│   └── tsconfig.json
-└── server/
-    ├── main.go
-    └── go.mod
+.
+├── LICENSE
+├── README.md
+├── server
+│   ├── cmd
+│   │   ├── config.go
+│   │   └── main.go
+│   ├── go.mod
+│   ├── go.sum
+│   └── pkg
+│       ├── api.go
+│       ├── models
+│       │   └── responses.go
+│       ├── routes
+│       │   └── health.go
+│       └── utils
+│           └── env.go
+└── ui
+    ├── README.md
+    ├── index.html
+    ├── package-lock.json
+    ├── package.json
+    ├── public
+    │   └── vite.svg
+    ├── src
+    │   ├── App.tsx
+    │   ├── index.css
+    │   ├── main.tsx
+    │   └── vite-env.d.ts
+    ├── tsconfig.json
+    ├── tsconfig.node.json
+    └── vite.config.ts
 ```
 
 ## Prerequisites
@@ -62,8 +86,20 @@ For the frontend, you'll need to update your Node.js installation to use NVM and
    ```
 3. Run the Go server:
    ```bash
-   go run main.go
+   go run ./cmd
    ```
+
+> If you wish to run an executable/binary of the go server, run the following commands
+> ```shell
+> go build -o ./bin/server ./cmd # compile go binary
+> ./bin/server
+> ```
+
+> To check if server is running execute
+> ```shell
+> curl http:/localhost:3000/checks/ping
+> # {"ping":"pong"}
+> ```
 
 ### React Frontend
 
