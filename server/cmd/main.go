@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+
 	"github.com/rs/zerolog/log"
 	"github.com/siddg97/project-rook/pkg"
 )
@@ -14,6 +15,7 @@ func main() {
 		panic(err)
 	}
 
+	// Propagate cancellation signals
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 

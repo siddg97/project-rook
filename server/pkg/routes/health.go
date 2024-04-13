@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -12,6 +13,8 @@ import (
 	"github.com/siddg97/project-rook/pkg/models"
 	"google.golang.org/api/option"
 )
+
+var GeminiKey string = os.Getenv("GEMINI_KEY")
 
 func ConfigureChecks(router *gin.Engine) {
 	checkRoutes := router.Group("/checks")
@@ -31,7 +34,7 @@ func ping() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx := context.Background()
 
-		client, err := genai.NewClient(ctx, option.WithAPIKey("AIzaSyBwVRHg5_GcRKqA-m252slgcTHtyqvQRsU"))
+		client, err := genai.NewClient(ctx, option.WithAPIKey(GeminiKey))
 		if err != nil {
 			log.Fatal(err)
 			c.JSON(http.StatusBadRequest, err)

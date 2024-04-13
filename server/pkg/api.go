@@ -3,6 +3,7 @@ package pkg
 import (
 	"context"
 	"fmt"
+
 	"github.com/gin-contrib/logger"
 	"github.com/gin-contrib/requestid"
 	"github.com/gin-gonic/gin"
@@ -11,8 +12,8 @@ import (
 )
 
 type ApiServer struct {
-	logLevel string
-	port     string
+	LogLevel string
+	Port     string
 	Ctx      context.Context
 	Router   *gin.Engine
 }
@@ -24,8 +25,8 @@ func NewApiServer(ctx context.Context, ginLogLevel string, port string) *ApiServ
 	return &ApiServer{
 		Router:   router,
 		Ctx:      ctx,
-		port:     port,
-		logLevel: ginLogLevel,
+		Port:     port,
+		LogLevel: ginLogLevel,
 	}
 }
 
@@ -33,7 +34,7 @@ func (s *ApiServer) Start() error {
 	s.setupMiddlewares()
 	s.setupRoutes()
 
-	return s.Router.Run(fmt.Sprintf(":%s", s.port))
+	return s.Router.Run(fmt.Sprintf(":%s", s.Port))
 }
 
 func (s *ApiServer) setupMiddlewares() {

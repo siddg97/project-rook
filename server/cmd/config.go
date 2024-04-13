@@ -1,34 +1,35 @@
 package main
 
 import (
-	"github.com/siddg97/project-rook/pkg/utils"
+	"os"
+
+	"github.com/joho/godotenv"
+	"github.com/rs/zerolog/log"
 )
 
 type ServerConfig struct {
-	LogLevel string
-	Env      string
-	Port     string
+	LogLevel  string
+	Env       string
+	Port      string
+	GeminiKey string
 }
 
 func InitConfig() (*ServerConfig, error) {
-	envLogLevel, err := utils.GetDefaultEnvVar("LOG_LEVEL", "debug")
+	err := godotenv.Load()
 	if err != nil {
-		return nil, err
+		log.Fatal().Msgf("Error loading .env file %v", err)
+		panic(err)
 	}
 
-	envPort, err := utils.GetDefaultEnvVar("PORT", "3000")
-	if err != nil {
-		return nil, err
-	}
-
-	env, err := utils.GetDefaultEnvVar("ENV", "local")
-	if err != nil {
-		return nil, err
-	}
+	envLogLevel := os.Getenv("LOG_LEVEL")
+	envPort := os.Getenv("PORT")
+	env := os.Getenv("ENV")
+	geminiKey := os.Getenv("GEMINI_KEY")
 
 	return &ServerConfig{
-		LogLevel: envLogLevel,
-		Env:      env,
-		Port:     envPort,
+		LogLevel:  envLogLevel,
+		Env:       env,
+		Port:      envPort,
+		GeminiKey: geminiKey,
 	}, nil
 }

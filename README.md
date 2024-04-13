@@ -84,7 +84,14 @@ For the frontend, you'll need to update your Node.js installation to use NVM and
    ```bash
    go mod download
    ```
-3. Run the Go server:
+3. Create a `.env` file with the following
+   ```bash
+   LOG_LEVEL=debug
+   PORT=3000
+   ENV=local
+   GEMINI_KEY=<Google Gemini API Key>
+   ```
+4. Run the Go server:
    ```bash
    go run ./cmd
    ```
