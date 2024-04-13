@@ -8,10 +8,9 @@ import (
 )
 
 type ServerConfig struct {
-	LogLevel  string
-	Env       string
-	Port      string
-	GeminiKey string
+	LogLevel string
+	Env      string
+	Port     string
 }
 
 func InitConfig() (*ServerConfig, error) {
@@ -24,12 +23,10 @@ func InitConfig() (*ServerConfig, error) {
 	envLogLevel := os.Getenv("LOG_LEVEL")
 	envPort := os.Getenv("PORT")
 	env := os.Getenv("ENV")
-	geminiKey := os.Getenv("GEMINI_KEY")
 
 	return &ServerConfig{
-		LogLevel:  envLogLevel,
-		Env:       env,
-		Port:      envPort,
-		GeminiKey: geminiKey,
+		LogLevel: envLogLevel,
+		Env:      env,
+		Port:     envPort,
 	}, nil
 }
