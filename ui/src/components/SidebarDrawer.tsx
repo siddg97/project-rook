@@ -1,17 +1,16 @@
-import type { ModalProps } from "@nextui-org/react";
+import type { ModalProps } from '@nextui-org/react';
 
-import { TRANSITION_EASINGS } from "@nextui-org/framer-transitions";
-import { Modal, ModalBody, ModalContent } from "@nextui-org/react";
-import { forwardRef, useMemo } from "react";
-import { cn } from "../utils";
-
+import { TRANSITION_EASINGS } from '@nextui-org/framer-transitions';
+import { Modal, ModalBody, ModalContent } from '@nextui-org/react';
+import { forwardRef, useMemo } from 'react';
+import { cn } from '../utils';
 
 const SidebarDrawer = forwardRef<
   HTMLDivElement,
   ModalProps & {
-  sidebarWidth?: number;
-  sidebarPlacement?: "left" | "right";
-}
+    sidebarWidth?: number;
+    sidebarPlacement?: 'left' | 'right';
+  }
 >(
   (
     {
@@ -21,14 +20,14 @@ const SidebarDrawer = forwardRef<
       isOpen,
       sidebarWidth = 288,
       classNames = {},
-      sidebarPlacement = "left",
+      sidebarPlacement = 'left',
       motionProps: drawerMotionProps,
       ...props
     },
-    ref,
+    ref
   ) => {
     const motionProps = useMemo(() => {
-      if (!!drawerMotionProps && typeof drawerMotionProps === "object") {
+      if (!!drawerMotionProps && typeof drawerMotionProps === 'object') {
         return drawerMotionProps;
       }
 
@@ -44,7 +43,7 @@ const SidebarDrawer = forwardRef<
             },
           },
           exit: {
-            x: sidebarPlacement == "left" ? -sidebarWidth : sidebarWidth,
+            x: sidebarPlacement == 'left' ? -sidebarWidth : sidebarWidth,
             transition: {
               x: {
                 duration: 0.2,
@@ -63,31 +62,31 @@ const SidebarDrawer = forwardRef<
           {...props}
           classNames={{
             ...classNames,
-            wrapper: cn("!w-[var(--sidebar-width)]", classNames?.wrapper, {
-              "!items-start !justify-start ": sidebarPlacement === "left",
-              "!items-end !justify-end": sidebarPlacement === "right",
+            wrapper: cn('!w-[var(--sidebar-width)]', classNames?.wrapper, {
+              '!items-start !justify-start ': sidebarPlacement === 'left',
+              '!items-end !justify-end': sidebarPlacement === 'right',
             }),
             base: cn(
-              "w-[var(--sidebar-width)] !m-0 p-0 h-full max-h-full",
+              'w-[var(--sidebar-width)] !m-0 p-0 h-full max-h-full',
               classNames?.base,
               className,
               {
-                "inset-y-0 left-0 max-h-[none] rounded-l-none !justify-start":
-                  sidebarPlacement === "left",
-                "inset-y-0 right-0 max-h-[none] rounded-r-none !justify-end":
-                  sidebarPlacement === "right",
-              },
+                'inset-y-0 left-0 max-h-[none] rounded-l-none !justify-start':
+                  sidebarPlacement === 'left',
+                'inset-y-0 right-0 max-h-[none] rounded-r-none !justify-end':
+                  sidebarPlacement === 'right',
+              }
             ),
-            body: cn("p-0", classNames?.body),
-            closeButton: cn("z-50", classNames?.closeButton),
+            body: cn('p-0', classNames?.body),
+            closeButton: cn('z-50', classNames?.closeButton),
           }}
           isOpen={isOpen}
           motionProps={motionProps}
-          radius="none"
-          scrollBehavior="inside"
+          radius='none'
+          scrollBehavior='inside'
           style={{
             // @ts-ignore
-            "--sidebar-width": `${sidebarWidth}px`,
+            '--sidebar-width': `${sidebarWidth}px`,
           }}
           onOpenChange={onOpenChange}
         >
@@ -97,17 +96,17 @@ const SidebarDrawer = forwardRef<
         </Modal>
         <div
           className={cn(
-            "hidden h-full max-w-[var(--sidebar-width)] overflow-x-hidden overflow-y-scroll sm:flex",
-            className,
+            'hidden h-full max-w-[var(--sidebar-width)] overflow-x-hidden overflow-y-scroll sm:flex',
+            className
           )}
         >
           {children}
         </div>
       </>
     );
-  },
+  }
 );
 
-SidebarDrawer.displayName = "SidebarDrawer";
+SidebarDrawer.displayName = 'SidebarDrawer';
 
 export default SidebarDrawer;

@@ -5,7 +5,7 @@ module.exports = {
     node: true,
   },
   extends: [
-    'standard-with-typescript',
+    'plugin:@typescript-eslint/recommended',
     'plugin:react/recommended',
     'plugin:react/jsx-runtime',
     'prettier',
@@ -36,8 +36,10 @@ module.exports = {
   plugins: ['react'],
   rules: {
     'spaced-comment': 'off',
-    '@typescript-eslint/explicit-function-return-type': 'warn',
+    '@typescript-eslint/explicit-function-return-type': 'off',
     '@typescript-eslint/triple-slash-reference': 'off',
-    '@typescript-eslint/no-non-null-assertion': 'warn',
+    '@typescript-eslint/no-non-null-assertion': 'off',
+    '@typescript-eslint/ban-ts-comment': 'off',
+    'react/prop-types': 'warn',
   },
 };
