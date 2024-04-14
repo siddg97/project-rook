@@ -1,38 +1,45 @@
-import { ScrollShadow, Tab, Tabs } from '@nextui-org/react';
+import { NextUIProvider } from '@nextui-org/react';
 import {
-  Conversation,
-  PromptInputWithActions,
-  SidebarWithGradient,
-} from './components';
+  NavigateFunction,
+  Outlet,
+  Route,
+  Routes,
+  useNavigate,
+} from 'react-router-dom';
+import { PageContainer } from './components';
+import { routes } from './routes.tsx';
 
 function App() {
+  const navigate: NavigateFunction = useNavigate();
+
   return (
-    <div className='h-full w-full max-w-full'>
-      <SidebarWithGradient
-        header={
-          <Tabs className='justify-center'>
-            <Tab key='creative' title='Creative' />
-            <Tab key='technical' title='Technical' />
-            <Tab key='precise' title='Precise' />
-          </Tabs>
+    <NextUIProvider navigate={navigate}>
+      <main
+        className={
+          'dark bg-accent-gr bg-auto w-full min-h-screen text-foreground bg-background'
         }
-        title="Creative Uses for Kids' Art"
       >
-        <div className='relative flex h-full flex-col'>
-          <ScrollShadow className='flex h-full max-h-[60vh] flex-col gap-6 overflow-y-auto pb-8'>
-            <Conversation />
-            <Conversation />
-          </ScrollShadow>
-          <div className='mt-auto flex max-w-full flex-col gap-2'>
-            <PromptInputWithActions />
-            <p className='px-2 text-tiny text-default-400'>
-              Acme AI can make mistakes. Consider checking important
-              information.
-            </p>
-          </div>
-        </div>
-      </SidebarWithGradient>
-    </div>
+        <Routes>
+          <Route
+            path='/'
+            element={
+              <PageContainer>
+                <Outlet />
+              </PageContainer>
+            }
+          >
+            {routes.map(r => (
+              <Route
+                index={r.path === '/'}
+                path={r.path}
+                element={r.component}
+              />
+            ))}
+            {/*<Route path='*' element={<NoMatch />} />*/}
+          </Route>
+        </Routes>
+      </main>
+    </NextUIProvider>
   );
 }
 

@@ -7,3 +7,4 @@ export { default as TeamAvatar } from './TeamAvatar.tsx';
 export { default as SidebarDrawer } from './SidebarDrawer.tsx';
 export { default as PromptInput } from './PromptInput.tsx';
 export { default as PromptInputWithActions } from './PromptInputWithActions.tsx';
+export { default as PageContainer } from './PageContainer.tsx';
