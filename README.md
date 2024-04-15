@@ -118,7 +118,12 @@ For the frontend, you'll need to update your Node.js installation to use NVM and
    ```bash
    npm install
    ```
-3. Start the React development server:
+3. Create a `.env` file with the following
+   ```bash
+   FIREBASE_PROJECT_ID="<project-id>"
+   FIREBASE_API_KEY="<api-key>"
+   ```
+4. Start the React development server:
    ```bash
    npm run dev
    ```
