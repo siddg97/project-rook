@@ -3,72 +3,84 @@ import {
   Button,
   ScrollShadow,
   Spacer,
-  Input,
   useDisclosure,
 } from '@nextui-org/react';
 import { Icon } from '@iconify/react';
+import { getAuth } from 'firebase/auth';
 import { ReactNode } from 'react';
-import { sectionItemsWithTeams } from '../constants';
-import AcmeLogo from './AcmeLogo.tsx';
-import Sidebar from './Sidebar.tsx';
-import SidebarDrawer from './SidebarDrawer.tsx';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { sectionItems } from '../../constants';
+import { useStore } from '../../hooks/useStore.ts';
+import { Sidebar } from './Sidebar.tsx';
+import { SidebarDrawer } from './SidebarDrawer.tsx';
 
-export default function SidebarWithGradient({
-  children,
-  header,
-  title = 'Overview',
-}: {
+interface Props {
   children?: ReactNode;
   header?: ReactNode;
-  title?: string;
-}) {
+}
+
+const pathToPageTitleMappings: Record<string, string> = {
+  '/': 'Overview',
+  '/summary': 'Summary',
+};
+
+function SidebarWithGradient({ children, header }: Props) {
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const auth = useStore(state => state.auth);
+  const firebase = useStore(state => state.firebase);
 
-  const content = (
-    <div className='relative flex h-full w-72 flex-1 flex-col bg-gradient-to-b from-default-100 via-danger-100 to-secondary-100 p-6'>
-      <div className='flex items-center gap-2 px-2'>
-        <div className='flex h-8 w-8 items-center justify-center rounded-full border-small border-foreground/20'>
-          <AcmeLogo className='text-foreground' />
-        </div>
-        <span className='text-small font-medium uppercase text-foreground'>
-          Acme
-        </span>
-      </div>
-
-      <Spacer y={8} />
-
-      <div className='flex flex-col gap-4'>
-        <div className='flex items-center gap-3 px-2'>
-          <Avatar
-            size='sm'
-            src='https://i.pravatar.cc/150?u=a04258114e29028708c'
-          />
-          <div className='flex flex-col'>
-            <p className='text-small text-foreground'>Jane Doe</p>
-            <p className='text-tiny text-default-500'>Product Designer</p>
-          </div>
-        </div>
-        <Input
-          fullWidth
-          aria-label='search'
-          classNames={{
-            base: 'px-1',
-            inputWrapper:
-              'bg-default-400/20 data-[hover=true]:bg-default-500/30 group-data-[focus=true]:bg-default-500/20',
-            input:
-              'placeholder:text-default-600 group-data-[has-value=true]:text-foreground',
-          }}
-          labelPlacement='outside'
-          placeholder='Search...'
-          startContent={
-            <Icon
-              className='text-default-600 [&>g]:stroke-[2px]'
-              icon='solar:magnifer-linear'
-              width={18}
-            />
-          }
+  const rookIcon = (
+    <div className='flex items-center gap-2 px-2'>
+      <div className='flex h-8 w-8 items-center justify-center rounded-full border-small border-foreground/20'>
+        <Icon
+          width={20}
+          height={20}
+          icon='tabler:chess-rook-filled'
+          className='text-foreground'
         />
       </div>
+      <span className='text-small font-medium uppercase text-foreground'>
+        Rook
+      </span>
+    </div>
+  );
+
+  const userDetails = (
+    <div className='flex flex-col gap-4'>
+      <div className='flex items-center gap-3 px-2'>
+        <Avatar size='sm' src={auth.authenticatedUser?.photoURL as string} />
+        <div className='flex flex-col'>
+          <p className='text-small text-foreground'>
+            {auth.authenticatedUser?.displayName}
+          </p>
+          <p className='text-tiny text-default-500'>
+            {auth.authenticatedUser?.email as string}
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+
+  const onLogOut = async () => {
+    try {
+      const firebaseAuth = getAuth(firebase.app);
+      await firebaseAuth.signOut();
+    } catch (e) {
+      console.log('logout failed', e);
+      console.log('redirecting to login page and clearing state anyways');
+    } finally {
+      auth.clearAuthenticatedUser();
+      navigate('/login');
+    }
+  };
+
+  const drawerContent = (
+    <div className='relative flex min-h-full w-72 flex-1 flex-col bg-gradient-to-b from-default-100 via-danger-100 to-secondary-100 p-6'>
+      {rookIcon}
+      <Spacer y={8} />
+      {userDetails}
 
       <ScrollShadow className='-mr-6 h-full max-h-full py-6 pr-6'>
         <Sidebar
@@ -79,7 +91,7 @@ export default function SidebarWithGradient({
             title:
               'text-default-600 group-data-[selected=true]:text-foreground',
           }}
-          items={sectionItemsWithTeams}
+          items={sectionItems}
           sectionClasses={{
             heading: 'text-default-600 font-medium',
           }}
@@ -91,20 +103,6 @@ export default function SidebarWithGradient({
 
       <div className='mt-auto flex flex-col'>
         <Button
-          fullWidth
-          className='justify-start text-default-600 data-[hover=true]:text-black'
-          startContent={
-            <Icon
-              className='text-default-600'
-              icon='solar:info-circle-line-duotone'
-              width={24}
-            />
-          }
-          variant='light'
-        >
-          Help & Information
-        </Button>
-        <Button
           className='justify-start text-default-600 data-[hover=true]:text-black'
           startContent={
             <Icon
@@ -114,6 +112,7 @@ export default function SidebarWithGradient({
             />
           }
           variant='light'
+          onClick={onLogOut}
         >
           Log Out
         </Button>
@@ -128,7 +127,7 @@ export default function SidebarWithGradient({
         isOpen={isOpen}
         onOpenChange={onOpenChange}
       >
-        {content}
+        {drawerContent}
       </SidebarDrawer>
       <div className='flex w-full flex-col gap-y-4 p-4 sm:max-w-[calc(100%_-_288px)]'>
         <header className='flex h-16 min-h-16 items-center justify-between gap-2 overflow-x-scroll rounded-medium border-small border-divider px-4 py-2'>
@@ -148,7 +147,7 @@ export default function SidebarWithGradient({
               />
             </Button>
             <h2 className='truncate text-medium font-medium text-default-700'>
-              {title}
+              {pathToPageTitleMappings[location.pathname]}
             </h2>
           </div>
           {header}
@@ -162,3 +161,5 @@ export default function SidebarWithGradient({
     </div>
   );
 }
+
+export { SidebarWithGradient };

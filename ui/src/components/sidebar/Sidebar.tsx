@@ -13,7 +13,7 @@ import {
 } from '@nextui-org/react';
 import { Icon } from '@iconify/react';
 import { forwardRef, Key, ReactNode, useCallback, useState } from 'react';
-import { cn } from '../utils';
+import { cn } from '../../utils';
 
 export enum SidebarItemType {
   Nest = 'nest',
@@ -320,4 +320,4 @@ const Sidebar = forwardRef<HTMLElement, SidebarProps>(
 
 Sidebar.displayName = 'Sidebar';
 
-export default Sidebar;
+export { Sidebar };

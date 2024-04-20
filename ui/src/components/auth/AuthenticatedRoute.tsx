@@ -1,5 +1,5 @@
 import { FC, ReactNode } from 'react';
-import { useStore } from '../hooks/useStore.ts';
+import { useStore } from '../../hooks/useStore.ts';
 import { Navigate } from 'react-router-dom';
 
 interface Props {
@@ -17,4 +17,4 @@ const AuthenticatedRoute: FC<Props> = ({ children, path }) => {
   );
 };
 
-export default AuthenticatedRoute;
+export { AuthenticatedRoute };

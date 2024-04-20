@@ -1,2 +1,3 @@
-export { default as Home } from './Home.tsx';
-export { default as Login } from './Login.tsx';
+export * from './Home.tsx';
+export * from './Login.tsx';
+export * from './Summary.tsx';

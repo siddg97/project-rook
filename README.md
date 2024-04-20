@@ -120,13 +120,13 @@ For the frontend, you'll need to update your Node.js installation to use NVM and
    ```
 3. Create a `.env` file with the following
    ```bash
-   FIREBASE_API_KEY=AIzaSyBlYjcyuV4Z4sWzmVXC_Nu9MLCDQB1utX4
-   FIREBASE_AUTH_DOMAIN=western-voyage-419302.firebaseapp.com
-   FIREBASE_PROJECT_ID=western-voyage-419302
-   FIREBASE_STORAGE_BUCKET=western-voyage-419302.appspot.com
-   FIREBASE_MESSAGING_SENDER_ID=178510623950
-   FIREBASE_APP_ID=1:178510623950:web:b141ea76815e4e290c8c9f
-   FIREBASE_MEASUREMENT_ID=G-4CGW4ELJ13
+   VITE_FIREBASE_API_KEY=AIzaSyBlYjcyuV4Z4sWzmVXC_Nu9MLCDQB1utX4
+   VITE_FIREBASE_AUTH_DOMAIN=western-voyage-419302.firebaseapp.com
+   VITE_FIREBASE_PROJECT_ID=western-voyage-419302
+   VITE_FIREBASE_STORAGE_BUCKET=western-voyage-419302.appspot.com
+   VITE_FIREBASE_MESSAGING_SENDER_ID=178510623950
+   VITE_FIREBASE_APP_ID=1:178510623950:web:b141ea76815e4e290c8c9f
+   VITE_FIREBASE_MEASUREMENT_ID=G-4CGW4ELJ13
    ```
 4. Start the React development server:
    ```bash

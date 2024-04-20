@@ -46,7 +46,6 @@ function App() {
             }
           >
             {routes.map(r => renderRoute(r))}
-            {/*<Route path='*' element={<NoMatch />} />*/}
           </Route>
         </Routes>
       </main>

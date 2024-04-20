@@ -3,7 +3,7 @@ import type { ModalProps } from '@nextui-org/react';
 import { TRANSITION_EASINGS } from '@nextui-org/framer-transitions';
 import { Modal, ModalBody, ModalContent } from '@nextui-org/react';
 import { forwardRef, useMemo } from 'react';
-import { cn } from '../utils';
+import { cn } from '../../utils';
 
 const SidebarDrawer = forwardRef<
   HTMLDivElement,
@@ -109,4 +109,4 @@ const SidebarDrawer = forwardRef<
 
 SidebarDrawer.displayName = 'SidebarDrawer';
 
-export default SidebarDrawer;
+export { SidebarDrawer };
