@@ -6,7 +6,7 @@ type Props = {
 
 function PageContainer({ children }: Props) {
   return (
-    <div className='flex min-h-screen w-full justify-center justify-items-center items-center container mx-auto max-w-7xl px-6 flex-grow'>
+    <div className='flex min-h-screen min-w-full justify-center justify-items-center items-center container mx-auto flex-grow'>
       {children}
     </div>
   );

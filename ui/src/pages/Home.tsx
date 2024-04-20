@@ -7,7 +7,7 @@ import {
 
 function Home() {
   return (
-    <div className='h-full w-full max-w-full'>
+    <div className='w-full h-full'>
       <SidebarWithGradient
         header={
           <Tabs className='justify-center'>

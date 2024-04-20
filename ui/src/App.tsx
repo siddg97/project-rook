@@ -1,4 +1,5 @@
 import { NextUIProvider } from '@nextui-org/react';
+import { ReactNode } from 'react';
 import {
   NavigateFunction,
   Outlet,
@@ -6,45 +7,50 @@ import {
   Routes,
   useNavigate,
 } from 'react-router-dom';
-import { PageContainer } from './components';
-import { routes } from './routes.tsx';
-import { AppContext, initializeFirebase } from './contexts/AppContext.ts';
+import { AuthenticatedRoute, PageContainer } from './components';
+import { AppRoute, routes } from './routes.tsx';
+
+function renderRoute(route: AppRoute): ReactNode {
+  const { key, path, isProtected, component } = route;
+
+  if (!isProtected) {
+    return <Route path={path} key={key} element={component} />;
+  }
+
+  return (
+    <Route
+      path={path}
+      key={key}
+      element={<AuthenticatedRoute path={path}>{component}</AuthenticatedRoute>}
+    />
+  );
+}
 
 function App() {
-  const firebaseApp = initializeFirebase();
   const navigate: NavigateFunction = useNavigate();
 
   return (
-    <AppContext.Provider value={{firebaseApp}}>
-      <NextUIProvider navigate={navigate}>
-        <main
-          className={
-            'dark bg-accent-gr bg-auto w-full min-h-screen text-foreground bg-background'
-          }
-        >
-          <Routes>
-            <Route
-              path='/'
-              element={
-                <PageContainer>
-                  <Outlet />
-                </PageContainer>
-              }
-            >
-              {routes.map(r => (
-                <Route
-                  key={r.key}
-                  index={r.path === '/'}
-                  path={r.path}
-                  element={r.component}
-                />
-              ))}
-              {/*<Route path='*' element={<NoMatch />} />*/}
-            </Route>
-          </Routes>
-        </main>
-      </NextUIProvider>
-    </AppContext.Provider>
+    <NextUIProvider navigate={navigate}>
+      <main
+        className={
+          'dark bg-accent-gr bg-auto w-full min-h-screen text-foreground bg-background m-0'
+        }
+      >
+        <Routes>
+          <Route
+            path='/'
+            element={
+              <PageContainer>
+                <Outlet />
+              </PageContainer>
+            }
+          >
+            {routes.map(r => renderRoute(r))}
+            {/*<Route path='*' element={<NoMatch />} />*/}
+          </Route>
+        </Routes>
+      </main>
+    </NextUIProvider>
   );
 }
 
