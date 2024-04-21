@@ -1,19 +1,79 @@
 package handlers
 
 import (
+	"context"
+	"encoding/base64"
+	"io"
 	"net/http"
+	"os"
 
 	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog/log"
+	"github.com/siddg97/project-rook/services"
+	"google.golang.org/api/vision/v1"
 )
+
+type CreateResumeRequest struct {
+	UserID string `json:"userId"`
+}
 
 type UpdateResumeRequest struct {
 	UserID     string `json:"userId"`
 	Experience string `json:"experience"`
 }
 
+type GetResumeRequest struct {
+	UserID string `json:"userId"`
+}
+
 func CreateResume(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{"message": "Needs implementation"})
+	ctx := context.Background()
+
+	// TODO: Grab file from the request and read it as PDF, if not PDF throw
+	filename := "resume.pdf"
+
+	file, fileOpenErr := os.Open(filename)
+	if fileOpenErr != nil {
+		log.Fatal().Msgf("Error to open file with filename: %v", filename)
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Failed to open file"})
+		return
+	}
+
+	pdfContent, readPdfErr := io.ReadAll(file)
+	if readPdfErr != nil {
+		log.Fatal().Msgf("Error to read file with filename: %v", filename)
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Failed to read file"})
+		return
+	}
+
+	visionClient := services.GetVisionService()
+	textDetectionRequest := &vision.BatchAnnotateFilesRequest{
+		Requests: []*vision.AnnotateFileRequest{
+			{
+				InputConfig: &vision.InputConfig{
+					MimeType: "application/pdf",
+					Content:  base64.StdEncoding.EncodeToString(pdfContent),
+				},
+				Features: []*vision.Feature{
+					{Type: "DOCUMENT_TEXT_DETECTION"},
+				},
+			},
+		},
+	}
+
+	textDetectionResponse, textDetectionCallErr := visionClient.Files.Annotate(textDetectionRequest).Context(ctx).Do()
+	if textDetectionCallErr != nil {
+		log.Fatal().Msgf("Error to call vision client to annotate files: %v", textDetectionCallErr.Error())
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Failed to call Vision API to annotate file"})
+		return
+	}
+
+	var extractedTextFromPdf string
+	for _, page := range textDetectionResponse.Responses[0].Responses {
+		extractedTextFromPdf += page.FullTextAnnotation.Text
+	}
+
+	c.JSON(http.StatusOK, gin.H{"text": extractedTextFromPdf})
 }
 
 func UpdateResume(c *gin.Context) {

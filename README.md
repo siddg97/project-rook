@@ -92,6 +92,8 @@ For the frontend, you'll need to update your Node.js installation to use NVM and
    GEMINI_KEY=<Google Gemini API Key>
    ```
 4. Create a `firebase_credentials.json` file with a private key generated from Firebase console
+5. Setup authentication for Cloud Vision API by following: https://cloud.google.com/vision/docs/libraries#authentication
+   - This will require you to install `gcloud` CLI and generate a credential file for ADC to use on any services that require credentials from ADC. Cloud Vision API is one such service. The credential file generation will require you to login to the GCP hackathon shared account and select the hackathon project id. 
 5. Run the Go server:
    ```bash
    go run .

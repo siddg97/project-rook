@@ -17,6 +17,7 @@ bin
 
 # Environment variables
 .env
+resume.pdf
 
 # Keys
 firebase_credentials.json

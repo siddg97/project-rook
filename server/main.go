@@ -46,6 +46,12 @@ func main() {
 	}
 	defer geminiClient.Close()
 
+	// Setup Cloud Vision
+	_, visionErr := services.InitializeVision(ctx)
+	if visionErr != nil {
+		panic(visionErr)
+	}
+
 	// Initialize Gin
 	gin.SetMode(cfg.LogLevel)
 	router := gin.New()
