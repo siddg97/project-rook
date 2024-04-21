@@ -1,17 +1,17 @@
 package routes
 
 import (
-	"context"
-
 	"github.com/gin-gonic/gin"
-	"github.com/google/generative-ai-go/genai"
 	"github.com/siddg97/project-rook/handlers"
 )
 
-func SetupRoutes(ctx context.Context, router *gin.Engine, geminiClient *genai.Client) {
+func SetupRoutes(router *gin.Engine) {
 	versionOne := router.Group("/v1")
 	{
-		versionOne.GET("/story", handlers.GenerateStory(ctx, geminiClient))
+		versionOne.GET("/story", handlers.GenerateStory)
+		versionOne.PUT("/resume", handlers.CreateResume)
+		versionOne.POST("/resume", handlers.UpdateResume)
+		versionOne.GET("/resume", handlers.GetResume)
 	}
 
 	router.GET("/healthcheck", handlers.HealthCheck)

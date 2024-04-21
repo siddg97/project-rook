@@ -1,9 +1,10 @@
 package main
 
 import (
-	"cloud.google.com/go/firestore"
 	"context"
 	"fmt"
+
+	"cloud.google.com/go/firestore"
 	"github.com/gin-gonic/gin"
 	"github.com/google/generative-ai-go/genai"
 	"github.com/rs/zerolog/log"
@@ -59,7 +60,7 @@ func main() {
 	middlewares.SetupMiddlewares(router)
 
 	// Setup routes
-	routes.SetupRoutes(ctx, router, geminiClient)
+	routes.SetupRoutes(router)
 
 	// Start server
 	if err := server.router.Run(fmt.Sprintf(":%s", cfg.Port)); err != nil {
