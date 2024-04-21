@@ -18,6 +18,9 @@ bin
 # Environment variables
 .env
 
+# Keys
+firebase_credentials.json
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

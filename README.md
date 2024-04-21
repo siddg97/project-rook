@@ -91,9 +91,10 @@ For the frontend, you'll need to update your Node.js installation to use NVM and
    ENV=local
    GEMINI_KEY=<Google Gemini API Key>
    ```
-4. Run the Go server:
+4. Create a `firebase_credentials.json` file with a private key generated from Firebase console
+5. Run the Go server:
    ```bash
-   go run ./cmd
+   go run .
    ```
 
 > If you wish to run an executable/binary of the go server, run the following commands
