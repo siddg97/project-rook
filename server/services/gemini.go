@@ -15,7 +15,6 @@ func InitializeGemini(ctx context.Context, geminiKey string) (*genai.Client, err
 		log.Fatal().Msgf("Error creating Gemini client: %v", err)
 		return nil, err
 	}
-	defer client.Close()
 
 	log.Info().Msg("Successfully initialized Gemini client")
 	return client, nil

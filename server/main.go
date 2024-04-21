@@ -1,11 +1,9 @@
 package main
 
 import (
+	"cloud.google.com/go/firestore"
 	"context"
 	"fmt"
-	"os"
-
-	"cloud.google.com/go/firestore"
 	"github.com/gin-gonic/gin"
 	"github.com/google/generative-ai-go/genai"
 	"github.com/rs/zerolog/log"
@@ -22,22 +20,12 @@ type Server struct {
 }
 
 func main() {
-	server := Server{}
-
-	// Initialize Gin
-	router := gin.New()
-	server.router = router
-
-	// Setup middlewares
-	middlewares.SetupMiddlewares(router)
-
 	// Setup server config
 	cfg, configErr := config.InitConfig()
 	if configErr != nil {
 		log.Fatal().Msgf("Failed to initialize server config due to fatal error %v", configErr)
 		panic(configErr)
 	}
-	gin.SetMode(cfg.LogLevel)
 
 	ctx := context.Background()
 
@@ -48,15 +36,27 @@ func main() {
 		log.Fatal().Msgf("Failed to initialize Firestore due to fatal error %v", firestoreErr)
 		panic(firestoreErr)
 	}
-	server.firestoreClient = firestoreClient
+	defer firestoreClient.Close()
 
 	// Setup Gemini
-	geminiKey := os.Getenv("GEMINI_KEY")
-	geminiClient, geminiErr := services.InitializeGemini(ctx, geminiKey)
+	geminiClient, geminiErr := services.InitializeGemini(ctx, cfg.GeminiApiKey)
 	if geminiErr != nil {
 		panic(geminiErr)
 	}
-	server.geminiClient = geminiClient
+	defer geminiClient.Close()
+
+	// Initialize Gin
+	gin.SetMode(cfg.LogLevel)
+	router := gin.New()
+
+	server := Server{
+		geminiClient:    geminiClient,
+		router:          router,
+		firestoreClient: firestoreClient,
+	}
+
+	// Setup middlewares
+	middlewares.SetupMiddlewares(router)
 
 	// Setup routes
 	routes.SetupRoutes(ctx, router, geminiClient)

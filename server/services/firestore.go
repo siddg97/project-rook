@@ -25,8 +25,6 @@ func InitializeFirestore(ctx context.Context, firebaseConfigPath string) (*fires
 		return nil, err
 	}
 
-	defer client.Close()
-
 	firestoreClient = client
 
 	log.Info().Msg("Successfully initialized Firestore client")
