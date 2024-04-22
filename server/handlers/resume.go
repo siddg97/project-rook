@@ -5,7 +5,6 @@ import (
 	"encoding/base64"
 	"io"
 	"net/http"
-	"os"
 
 	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog/log"
@@ -29,17 +28,18 @@ type GetResumeRequest struct {
 func CreateResume(c *gin.Context) {
 	ctx := context.Background()
 
-	// TODO: Grab file from the request and read it as PDF, if not PDF throw
-	filename := "resume.pdf"
-
-	file, fileOpenErr := os.Open(filename)
-	if fileOpenErr != nil {
-		log.Fatal().Msgf("Error to open file with filename: %v", filename)
-		c.JSON(http.StatusBadRequest, gin.H{"message": "Failed to open file"})
+	requestFile, readFileErr := c.FormFile("file")
+	if readFileErr != nil {
+		log.Fatal().Msgf("Error open file from input")
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Failed to get file from request"})
 		return
 	}
 
-	pdfContent, readPdfErr := io.ReadAll(file)
+	openedFile, _ := requestFile.Open()
+
+	filename := requestFile.Filename
+
+	pdfContent, readPdfErr := io.ReadAll(openedFile)
 	if readPdfErr != nil {
 		log.Fatal().Msgf("Error to read file with filename: %v", filename)
 		c.JSON(http.StatusBadRequest, gin.H{"message": "Failed to read file"})

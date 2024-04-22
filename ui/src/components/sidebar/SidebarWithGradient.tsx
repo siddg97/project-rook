@@ -20,7 +20,7 @@ interface Props {
 }
 
 const pathToPageTitleMappings: Record<string, string> = {
-  '/': 'Overview',
+  '/': 'Upload resume',
   '/summary': 'Summary',
 };
 

@@ -3,6 +3,9 @@ module github.com/siddg97/project-rook
 go 1.22.2
 
 require (
+	cloud.google.com/go/firestore v1.14.0
+	firebase.google.com/go v3.13.0+incompatible
+	github.com/gin-contrib/cors v1.7.1
 	github.com/gin-contrib/logger v1.1.1
 	github.com/gin-contrib/requestid v1.0.0
 	github.com/gin-gonic/gin v1.9.1
@@ -12,16 +15,8 @@ require (
 )
 
 require (
-	cloud.google.com/go/firestore v1.14.0 // indirect
 	cloud.google.com/go/iam v1.1.6 // indirect
 	cloud.google.com/go/storage v1.38.0 // indirect
-	cloud.google.com/go/vision v1.2.0 // indirect
-	cloud.google.com/go/vision/v2 v2.8.0 // indirect
-	firebase.google.com/go v3.13.0+incompatible // indirect
-	github.com/fatih/color v1.9.0 // indirect
-	github.com/fsnotify/fsnotify v1.4.9 // indirect
-	github.com/githubnemo/CompileDaemon v1.4.0 // indirect
-	github.com/radovskyb/watcher v1.0.7 // indirect
 	google.golang.org/genproto v0.0.0-20240213162025-012b6fc9bca9 // indirect
 )
 

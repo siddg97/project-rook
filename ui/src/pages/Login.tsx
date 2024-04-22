@@ -3,7 +3,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { Icon } from '@iconify/react';
 import { NavigateFunction, useLocation, useNavigate } from 'react-router-dom';
 import { useStore } from '../hooks/useStore.ts';
-import { GoogleAuthProvider, getAuth, signInWithPopup } from 'firebase/auth';
+import { GoogleAuthProvider, getAuth, signInWithPopup, UserCredential } from 'firebase/auth';
 
 function Login() {
   const navigate: NavigateFunction = useNavigate();
@@ -14,7 +14,7 @@ function Login() {
   const onLogin = async () => {
     try {
       const firebaseAuth = getAuth(firebase.app);
-      const result = await signInWithPopup(
+      const result: UserCredential = await signInWithPopup(
         firebaseAuth,
         new GoogleAuthProvider()
       );
