@@ -2,7 +2,6 @@ package services
 
 import (
 	"context"
-	"fmt"
 	"github.com/siddg97/project-rook/models"
 	"time"
 
@@ -18,8 +17,8 @@ type FirebaseService struct {
 	FirestoreClient *firestore.Client
 }
 
-var resumeCollection = "resumes"
-var promptHistorySubCollection = "promptHistory"
+const resumeCollection = "resumes"
+const promptHistorySubCollection = "promptHistory"
 
 func InitializeFirebase(ctx context.Context, firebaseConfigPath string) (*FirebaseService, error) {
 	opt := option.WithCredentialsFile(firebaseConfigPath)
@@ -58,23 +57,12 @@ func (s *FirebaseService) StoreNewResume(userId string, resumeInText string) err
 		return err
 	}
 
-	promptHistoryDocRef := resumeDocRef.Collection(promptHistorySubCollection).NewDoc()
-	_, err = promptHistoryDocRef.Set(s.ctx, &models.PromptHistoryDocument{
-		Id:        promptHistoryDocRef.ID,
-		CreatedAt: time.Now(),
-		Role:      "rook",
-		Text:      fmt.Sprintf("Here is a resume:\n\n%s\n\nKeep this in mind as you will be asked to update relevant sections of the resume", resumeInText),
-	})
-	if err != nil {
-		log.Err(err).Msgf("Failed to write to prompt history for user: %s", userId)
-		return err
-	}
 	return nil
 }
 
 func (s *FirebaseService) GetResumePromptHistory(userId string) ([]models.PromptHistoryDocument, error) {
 	promptHistorySubCollectionRef := s.FirestoreClient.Collection(resumeCollection).Doc(userId).Collection(promptHistorySubCollection)
-	promptHistory, err := promptHistorySubCollectionRef.Documents(s.ctx).GetAll()
+	promptHistory, err := promptHistorySubCollectionRef.OrderBy("createdAt", firestore.Direction(1)).Documents(s.ctx).GetAll()
 	if err != nil {
 		return make([]models.PromptHistoryDocument, 0), err
 	}
@@ -89,6 +77,22 @@ func (s *FirebaseService) GetResumePromptHistory(userId string) ([]models.Prompt
 	return promptHistoryDocs, nil
 }
 
+func (s *FirebaseService) StoreToPromptHistory(userId string, promptText string, role string) error {
+	promptHistorySubCollectionRef := s.FirestoreClient.Collection(resumeCollection).Doc(userId).Collection(promptHistorySubCollection)
+
+	latestPromptDocRef := promptHistorySubCollectionRef.NewDoc()
+	_, err := latestPromptDocRef.Set(s.ctx, &models.PromptHistoryDocument{
+		Id:        latestPromptDocRef.ID,
+		CreatedAt: time.Now(),
+		Role:      role,
+		Text:      promptText,
+	})
+	if err != nil {
+		log.Err(err).Msgf("Failed to write to prompt history for user: %s", userId)
+		return err
+	}
+	return nil
+}
 func (s *FirebaseService) GetResume(userId string) (*models.ResumeDocument, error) {
 	resumeDocRef, err := s.FirestoreClient.Collection(resumeCollection).Doc(userId).Get(s.ctx)
 	if err != nil {

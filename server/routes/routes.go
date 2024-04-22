@@ -19,7 +19,7 @@ func SetupRoutes(router *gin.Engine, visionService *services.VisionService, fire
 		3. Saves resume to prompt history collection
 		4. Returns 2XX
 		*/
-		versionOne.PUT("/:userId/resume", handlers.CreateResume(visionService, firebaseService))
+		versionOne.PUT("/:userId/resume", handlers.CreateResume(visionService, firebaseService, geminiService))
 
 		/**
 		1. Receives a skill/experience update intent
@@ -31,7 +31,7 @@ func SetupRoutes(router *gin.Engine, visionService *services.VisionService, fire
 		7. Updates the prompt history collection of the user
 		8. Send log of updated resume section back to client
 		*/
-		versionOne.POST("/resume", handlers.UpdateResume)
+		versionOne.POST("/:userId/resume", handlers.UpdateResume)
 
 		/**
 		1. Load up prompt history so far from db
@@ -46,7 +46,7 @@ func SetupRoutes(router *gin.Engine, visionService *services.VisionService, fire
 		/**
 		Returns payload that can be used to determine if user has a resume or not
 		*/
-		//versionOne.GET("/user")
+		versionOne.GET("/:userId", handlers.GetUserSummary(firebaseService, geminiService))
 	}
 
 }

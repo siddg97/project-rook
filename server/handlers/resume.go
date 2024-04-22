@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"github.com/siddg97/project-rook/models"
 	"github.com/siddg97/project-rook/services"
 	"io"
@@ -10,7 +11,7 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-func CreateResume(visionService *services.VisionService, firebaseService *services.FirebaseService) gin.HandlerFunc {
+func CreateResume(visionService *services.VisionService, firebaseService *services.FirebaseService, geminiService *services.GeminiService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// Source userId from path param
 		userId := c.Param("userId")
@@ -49,6 +50,29 @@ func CreateResume(visionService *services.VisionService, firebaseService *servic
 		if err != nil {
 			log.Err(err).Msg("Could not store resume to firebase")
 			c.JSON(http.StatusInternalServerError, models.ErrorResponse{Message: "Error storing resume in db"})
+			return
+		}
+
+		// Setup context with initial prompt to gemini
+		initalContextPrompt := fmt.Sprintf("%s\n\n data to update relevant sections of this resume will be provided", extractedResumeText)
+		geminiResponse, err := geminiService.PromptGemini(initalContextPrompt)
+		if err != nil {
+			log.Err(err).Msg("Failed to save context for resume via gemini prompt")
+			c.JSON(http.StatusInternalServerError, models.ErrorResponse{Message: "Error prompting gemini for initial resume context"})
+			return
+		}
+
+		// Store gemini prompt and response to prompt history in db
+		err = firebaseService.StoreToPromptHistory(userId, initalContextPrompt, "user")
+		if err != nil {
+			log.Err(err).Msg("Could not store resume context initial prompt from gemini to firebase")
+			c.JSON(http.StatusInternalServerError, models.ErrorResponse{Message: "Error storing resume context prompt in db"})
+			return
+		}
+		err = firebaseService.StoreToPromptHistory(userId, geminiResponse, "model")
+		if err != nil {
+			log.Err(err).Msg("Could not store resume context prompt response from gemini to firebase")
+			c.JSON(http.StatusInternalServerError, models.ErrorResponse{Message: "Error storing resume context prompt response in db"})
 			return
 		}
 
