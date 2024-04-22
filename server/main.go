@@ -3,73 +3,76 @@ package main
 import (
 	"context"
 	"fmt"
+	"github.com/siddg97/project-rook/services"
 
-	"cloud.google.com/go/firestore"
 	"github.com/gin-gonic/gin"
-	"github.com/google/generative-ai-go/genai"
 	"github.com/rs/zerolog/log"
 	"github.com/siddg97/project-rook/config"
 	"github.com/siddg97/project-rook/middlewares"
 	"github.com/siddg97/project-rook/routes"
-	"github.com/siddg97/project-rook/services"
 )
 
 type Server struct {
+	ctx             context.Context
 	router          *gin.Engine
-	firestoreClient *firestore.Client
-	geminiClient    *genai.Client
+	firebaseService *services.FirebaseService
+	visionService   *services.VisionService
+	geminiService   *services.GeminiService
+}
+
+func (s *Server) SetupServer() {
+	middlewares.SetupMiddlewares(s.router)
+	routes.SetupRoutes(s.router, s.visionService, s.firebaseService, s.geminiService)
 }
 
 func main() {
 	// Setup server config
-	cfg, configErr := config.InitConfig()
-	if configErr != nil {
-		log.Fatal().Msgf("Failed to initialize server config due to fatal error %v", configErr)
-		panic(configErr)
+	cfg, err := config.InitConfig()
+	if err != nil {
+		log.Err(err).Msg("Failed to initialize server config due to fatal error")
+		panic(err)
 	}
 
 	ctx := context.Background()
 
 	// Setup Firebase
-	firebaseConfigPath := "firebase_credentials.json"
-	firestoreClient, firestoreErr := services.InitializeFirestore(ctx, firebaseConfigPath)
-	if firestoreErr != nil {
-		log.Fatal().Msgf("Failed to initialize Firestore due to fatal error %v", firestoreErr)
-		panic(firestoreErr)
+	firebaseService, err := services.InitializeFirebase(ctx, cfg.FirebaseCredentialsPath)
+	if err != nil {
+		log.Err(err).Msg("Failed to initialize firebase clients")
+		panic(err)
 	}
-	defer firestoreClient.Close()
+	defer firebaseService.FirestoreClient.Close()
 
 	// Setup Gemini
-	geminiClient, geminiErr := services.InitializeGemini(ctx, cfg.GeminiApiKey)
-	if geminiErr != nil {
-		panic(geminiErr)
+	geminiService, err := services.InitializeGemini(ctx, cfg.GeminiApiKey)
+	if err != nil {
+		log.Err(err).Msg("Failed to initialize gemini client")
+		panic(err)
 	}
-	defer geminiClient.Close()
+	defer geminiService.GeminiClient.Close()
 
 	// Setup Cloud Vision
-	_, visionErr := services.InitializeVision(ctx)
+	visionService, visionErr := services.InitializeVision(ctx)
 	if visionErr != nil {
+		log.Err(err).Msg("Failed to initialize GCP Vision due to fatal error")
 		panic(visionErr)
 	}
 
 	// Initialize Gin
 	gin.SetMode(cfg.LogLevel)
-	router := gin.New()
+	router := gin.Default()
 
-	server := Server{
-		geminiClient:    geminiClient,
+	server := &Server{
+		ctx:             ctx,
 		router:          router,
-		firestoreClient: firestoreClient,
+		firebaseService: firebaseService,
+		visionService:   visionService,
+		geminiService:   geminiService,
 	}
-
-	// Setup middlewares
-	middlewares.SetupMiddlewares(router)
-
-	// Setup routes
-	routes.SetupRoutes(router)
+	server.SetupServer()
 
 	// Start server
 	if err := server.router.Run(fmt.Sprintf(":%s", cfg.Port)); err != nil {
-		log.Fatal().Msgf("Failed to run server: %v", err)
+		log.Err(err).Msgf("Failed to run server: %v", err)
 	}
 }

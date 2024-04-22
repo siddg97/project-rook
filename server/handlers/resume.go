@@ -1,103 +1,92 @@
 package handlers
 
 import (
-	"context"
-	"encoding/base64"
+	"github.com/siddg97/project-rook/models"
+	"github.com/siddg97/project-rook/services"
 	"io"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog/log"
-	"github.com/siddg97/project-rook/services"
-	"google.golang.org/api/vision/v1"
 )
 
-type CreateResumeRequest struct {
-	UserID string `json:"userId"`
-}
+func CreateResume(visionService *services.VisionService, firebaseService *services.FirebaseService) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		// Source userId from path param
+		userId := c.Param("userId")
+		log.Info().Msgf("Processing resume creation request for user: %s", userId)
 
-type UpdateResumeRequest struct {
-	UserID     string `json:"userId"`
-	Experience string `json:"experience"`
-}
+		// Source PDF file from request
+		requestFile, err := c.FormFile("file")
+		if err != nil {
+			log.Error().Msgf("Could not find `file` attached from incoming request: %v", err)
+			c.JSON(http.StatusBadRequest, &models.ErrorResponse{Message: "No file found in request"})
+			return
+		}
 
-type GetResumeRequest struct {
-	UserID string `json:"userId"`
-}
+		openedFile, _ := requestFile.Open()
+		filename := requestFile.Filename
+		log.Info().Msgf("Found file in %v request", filename)
 
-func CreateResume(c *gin.Context) {
-	ctx := context.Background()
+		pdfContent, err := io.ReadAll(openedFile)
+		if err != nil {
+			log.Error().Msgf("Error to read file with name %s: %v", filename, err)
+			c.JSON(http.StatusBadRequest, &models.ErrorResponse{Message: "Failed to read file"})
+			return
+		}
 
-	requestFile, readFileErr := c.FormFile("file")
-	if readFileErr != nil {
-		log.Fatal().Msgf("Error open file from input")
-		c.JSON(http.StatusBadRequest, gin.H{"message": "Failed to get file from request"})
-		return
+		// Extract text from PDF file via GCP Vision APIs
+		extractedResumeText, err := visionService.ExtractTextFromPdf(pdfContent)
+		if err != nil {
+			log.Error().Msgf("Encountered error when trying to extract text from PDF file: %v", err)
+			c.JSON(http.StatusInternalServerError, &models.ErrorResponse{Message: "Failed to extract text from resume"})
+			return
+		}
+		log.Info().Msgf("Successfully extracted %v characters of text for attached resume for userId: %v", len(extractedResumeText), userId)
+
+		// Store resume text to prompt history for user
+		firebaseService.StoreNewResume(userId, extractedResumeText)
+
+		// Return response for request
+		c.JSON(http.StatusOK, gin.H{"text": extractedResumeText})
 	}
-
-	openedFile, _ := requestFile.Open()
-
-	filename := requestFile.Filename
-
-	pdfContent, readPdfErr := io.ReadAll(openedFile)
-	if readPdfErr != nil {
-		log.Fatal().Msgf("Error to read file with filename: %v", filename)
-		c.JSON(http.StatusBadRequest, gin.H{"message": "Failed to read file"})
-		return
-	}
-
-	visionClient := services.GetVisionService()
-	textDetectionRequest := &vision.BatchAnnotateFilesRequest{
-		Requests: []*vision.AnnotateFileRequest{
-			{
-				InputConfig: &vision.InputConfig{
-					MimeType: "application/pdf",
-					Content:  base64.StdEncoding.EncodeToString(pdfContent),
-				},
-				Features: []*vision.Feature{
-					{Type: "DOCUMENT_TEXT_DETECTION"},
-				},
-			},
-		},
-	}
-
-	textDetectionResponse, textDetectionCallErr := visionClient.Files.Annotate(textDetectionRequest).Context(ctx).Do()
-	if textDetectionCallErr != nil {
-		log.Fatal().Msgf("Error to call vision client to annotate files: %v", textDetectionCallErr.Error())
-		c.JSON(http.StatusBadRequest, gin.H{"message": "Failed to call Vision API to annotate file"})
-		return
-	}
-
-	var extractedTextFromPdf string
-	for _, page := range textDetectionResponse.Responses[0].Responses {
-		extractedTextFromPdf += page.FullTextAnnotation.Text
-	}
-
-	c.JSON(http.StatusOK, gin.H{"text": extractedTextFromPdf})
 }
 
 func UpdateResume(c *gin.Context) {
 	// Bind request body to UpdateResumeRequest struct
-	var updateResumeRequest UpdateResumeRequest
-	if err := c.BindJSON(&updateResumeRequest); err != nil {
+	var updateResumeRequest models.UpdateResumeRequest
+	if err := c.ShouldBindJSON(&updateResumeRequest); err != nil {
 		// Bad Request for non-JSON body
 		log.Error().Msgf("Received UpdateResume request with non-JSON body")
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid JSON payload"})
 		return
 	}
 
 	// Check if required fields are present
 	if updateResumeRequest.Experience == "" || updateResumeRequest.UserID == "" {
 		log.Error().Msgf("Received UpdateResume request with malformed JSON body: %v", updateResumeRequest)
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Missing or empty required field"})
+		c.JSON(http.StatusBadRequest, &models.ErrorResponse{Message: "Missing or empty required field"})
 		return
 	}
 
 	log.Info().Msgf("Received UpdateResume request with body: %v", updateResumeRequest)
 
-	c.JSON(http.StatusOK, gin.H{"message": "Experience saved successfully"})
+	c.JSON(http.StatusOK, &models.ErrorResponse{Message: "Experience saved successfully"})
 }
 
-func GetResume(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{"message": "Needs implementation"})
+func GetResume(firebaseService *services.FirebaseService) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		// Source userId from path param
+		userId := c.Param("userId")
+		log.Info().Msgf("Processing get resume request for user: %s", userId)
+
+		resume, err := firebaseService.GetResume(userId)
+		if err != nil {
+			log.Err(err).Msgf("Could not fetch resume for user: %s", userId)
+			c.JSON(http.StatusInternalServerError, models.ErrorResponse{Message: "Something failed while getting data"})
+			return
+		}
+
+		c.JSON(http.StatusOK, resume)
+	}
 }

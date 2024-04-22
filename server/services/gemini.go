@@ -8,22 +8,46 @@ import (
 	"google.golang.org/api/option"
 )
 
-var geminiClient genai.Client
+type GeminiService struct {
+	ctx          context.Context
+	GeminiClient *genai.Client
+	GeminiModel  *genai.GenerativeModel
+}
 
-func InitializeGemini(ctx context.Context, geminiKey string) (*genai.Client, error) {
+func InitializeGemini(ctx context.Context, geminiKey string) (*GeminiService, error) {
 	// Setup Gemini SDK
 	client, err := genai.NewClient(ctx, option.WithAPIKey(geminiKey))
 	if err != nil {
-		log.Fatal().Msgf("Error creating Gemini client: %v", err)
+		log.Err(err).Msgf("Error creating Gemini client")
 		return nil, err
 	}
 
-	geminiClient = *client
+	model := client.GenerativeModel("gemini-pro")
+
+	geminiService := &GeminiService{
+		ctx:          ctx,
+		GeminiClient: client,
+		GeminiModel:  model,
+	}
 
 	log.Info().Msg("Successfully initialized Gemini client")
-	return client, nil
+	return geminiService, nil
 }
 
-func GetGeminiClient() genai.Client {
-	return geminiClient
+func (s *GeminiService) PromptGemini(promptText string) (string, error) {
+	promptInput := genai.Text(promptText)
+	response, err := s.GeminiModel.GenerateContent(s.ctx, promptInput)
+	if err != nil {
+		return "", err
+	}
+
+	var fullResponse string
+	for _, candidates := range response.Candidates {
+		for _, part := range candidates.Content.Parts {
+			textPart := part.(genai.Text)
+			fullResponse += string(textPart)
+		}
+	}
+
+	return fullResponse, nil
 }
