@@ -63,7 +63,7 @@ func (s *FirebaseService) StoreNewResume(userId string, resumeInText string) err
 		Id:        promptHistoryDocRef.ID,
 		CreatedAt: time.Now(),
 		Role:      "rook",
-		Text:      fmt.Sprintf("Providing the content of the resume as text:\n\n%s\n\nKeep this in mind as you will be provided with updates of what the person has done since this resume and asked to update relevant sections of the resume", resumeInText),
+		Text:      fmt.Sprintf("Here is a resume:\n\n%s\n\nKeep this in mind as you will be asked to update relevant sections of the resume", resumeInText),
 	})
 	if err != nil {
 		log.Err(err).Msgf("Failed to write to prompt history for user: %s", userId)
@@ -72,12 +72,32 @@ func (s *FirebaseService) StoreNewResume(userId string, resumeInText string) err
 	return nil
 }
 
+func (s *FirebaseService) GetResumePromptHistory(userId string) ([]models.PromptHistoryDocument, error) {
+	promptHistorySubCollectionRef := s.FirestoreClient.Collection(resumeCollection).Doc(userId).Collection(promptHistorySubCollection)
+	promptHistory, err := promptHistorySubCollectionRef.Documents(s.ctx).GetAll()
+	if err != nil {
+		return make([]models.PromptHistoryDocument, 0), err
+	}
+
+	var promptHistoryDocs []models.PromptHistoryDocument
+	for _, docRef := range promptHistory {
+		var doc models.PromptHistoryDocument
+		docRef.DataTo(&doc)
+		promptHistoryDocs = append(promptHistoryDocs, doc)
+	}
+
+	return promptHistoryDocs, nil
+}
+
 func (s *FirebaseService) GetResume(userId string) (*models.ResumeDocument, error) {
 	resumeDocRef, err := s.FirestoreClient.Collection(resumeCollection).Doc(userId).Get(s.ctx)
 	if err != nil {
 		return nil, err
 	}
 	var resumeDocument models.ResumeDocument
-	resumeDocRef.DataTo(&resumeDocument)
+	err = resumeDocRef.DataTo(&resumeDocument)
+	if err != nil {
+		return nil, err
+	}
 	return &resumeDocument, nil
 }

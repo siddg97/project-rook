@@ -45,7 +45,12 @@ func CreateResume(visionService *services.VisionService, firebaseService *servic
 		log.Info().Msgf("Successfully extracted %v characters of text for attached resume for userId: %v", len(extractedResumeText), userId)
 
 		// Store resume text to prompt history for user
-		firebaseService.StoreNewResume(userId, extractedResumeText)
+		err = firebaseService.StoreNewResume(userId, extractedResumeText)
+		if err != nil {
+			log.Err(err).Msg("Could not store resume to firebase")
+			c.JSON(http.StatusInternalServerError, models.ErrorResponse{Message: "Error storing resume in db"})
+			return
+		}
 
 		// Return response for request
 		c.JSON(http.StatusOK, gin.H{"text": extractedResumeText})
@@ -87,6 +92,16 @@ func GetResume(firebaseService *services.FirebaseService) gin.HandlerFunc {
 			return
 		}
 
-		c.JSON(http.StatusOK, resume)
+		promptHistory, err := firebaseService.GetResumePromptHistory(userId)
+		if err != nil {
+			log.Err(err).Msgf("Could not fetch resume prompt history for user: %s", userId)
+			c.JSON(http.StatusInternalServerError, models.ErrorResponse{Message: "Something failed while getting data"})
+			return
+		}
+
+		c.JSON(http.StatusOK, models.GetResumeResponse{
+			Resume:        *resume,
+			PromptHistory: promptHistory,
+		})
 	}
 }

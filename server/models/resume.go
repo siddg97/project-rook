@@ -12,3 +12,8 @@ type UpdateResumeRequest struct {
 type GetResumeRequest struct {
 	UserID string `json:"userId"`
 }
+
+type GetResumeResponse struct {
+	Resume        ResumeDocument          `json:"resume"`
+	PromptHistory []PromptHistoryDocument `json:"promptHistory"`
+}
