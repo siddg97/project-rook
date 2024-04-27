@@ -14,10 +14,12 @@ func SetupRoutes(router *gin.Engine, visionService *services.VisionService, fire
 		versionOne.GET("/story", handlers.GenerateStory(geminiService))
 
 		/**
-		1. Receives file from frontend
-		2. Extracts text (see if text extraction can be done in frontend)
-		3. Saves resume to prompt history collection
-		4. Returns 2XX
+		1. Receives user id as a path param
+		2. Receives file as a key value pair in the body
+		3. Extracts text using Vision API
+		4. Saves resume to resume collection with user id as the key
+		5. Prompt Gemini and save prompt and response to prompt history collection
+		6. Returns 2XX with Gemini response
 		*/
 		versionOne.PUT("/:userId/resume", handlers.CreateResume(visionService, firebaseService, geminiService))
 
@@ -31,7 +33,7 @@ func SetupRoutes(router *gin.Engine, visionService *services.VisionService, fire
 		7. Updates the prompt history collection of the user
 		8. Send log of updated resume section back to client
 		*/
-		versionOne.POST("/:userId/resume", handlers.UpdateResume)
+		versionOne.POST("/:userId/resume", handlers.UpdateResume(firebaseService))
 
 		/**
 		1. Load up prompt history so far from db

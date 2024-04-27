@@ -1,11 +1,12 @@
 package models
 
+import "mime/multipart"
+
 type CreateResumeRequest struct {
-	UserID string `json:"userId"`
+	Resume *multipart.FileHeader
 }
 
 type UpdateResumeRequest struct {
-	UserID     string `json:"userId"`
 	Experience string `json:"experience"`
 }
 

@@ -1,7 +1,7 @@
 package handlers
 
 import (
-	"fmt"
+	"encoding/json"
 	"io"
 	"net/http"
 
@@ -26,19 +26,28 @@ func CreateResume(visionService *services.VisionService, firebaseService *servic
 			return
 		}
 
-		openedFile, _ := requestFile.Open()
-		filename := requestFile.Filename
-		log.Info().Msgf("Found file in %v request", filename)
+		createResumeRequest := models.CreateResumeRequest{
+			Resume: requestFile,
+		}
 
-		pdfContent, err := io.ReadAll(openedFile)
+		if createResumeRequest.Resume == nil {
+			c.JSON(http.StatusBadRequest, &models.ErrorResponse{Message: "Resume file is not attached to the CreateResume request"})
+			return
+		}
+
+		openedResume, _ := createResumeRequest.Resume.Open()
+		filename := requestFile.Filename
+		log.Info().Msgf("Opened file %v in CreateResumeRequest", filename)
+
+		ResumePdfContent, err := io.ReadAll(openedResume)
 		if err != nil {
-			log.Error().Msgf("Error to read file with name %s: %v", filename, err)
-			c.JSON(http.StatusBadRequest, &models.ErrorResponse{Message: "Failed to read file"})
+			log.Error().Msgf("Error to read file %s: %v", filename, err)
+			c.JSON(http.StatusBadRequest, &models.ErrorResponse{Message: "Failed to read attached resume file. Ensure that the file type is PDF"})
 			return
 		}
 
 		// Extract text from PDF file via GCP Vision APIs
-		extractedResumeText, err := visionService.ExtractTextFromPdf(pdfContent)
+		extractedResumeText, err := visionService.ExtractTextFromPdf(ResumePdfContent)
 		if err != nil {
 			log.Error().Msgf("Encountered error when trying to extract text from PDF file: %v", err)
 			c.JSON(http.StatusInternalServerError, &models.ErrorResponse{Message: "Failed to extract text from resume"})
@@ -55,73 +64,33 @@ func CreateResume(visionService *services.VisionService, firebaseService *servic
 		}
 
 		// Setup context with initial prompt to gemini
-		initalContextPrompt := fmt.Sprintf(`
-			This is the initial resume text extracted from a resume file uploaded by the user denoted by their id %s.
-			The resume extracted text is bounded within ~~~.
-			~~~
-			%s
-			~~~
-			
-			Please keep note of this initial resume state going forward and expect new work summaries to be provided from the user in the future. 
-			Please always incorporate the new work summaries into the resume only if it is significant enough. 
-			At this point, please summarize the work that the user has done in a JSON format like the following example:
-			{
-				"userId": "a-user-id",
-				"skills": [
-					{
-						"name": "AWS Lambda",
-						"yearsOfExperience": 4,
-					},
-					...
-					...
-				],
-				"work-summaries": [
-					{
-						"title": "Software engineer",
-						"startDate: "December 2020",
-						"endDate": "Present",
-						"company": "Amazon",
-						"work": [
-							"Developed an API for tracking return-to-office attendance",
-							"Mentored incompetent engineers to be competent",
-							...
-							...
-						]
-					},
-					{
-						"title": "Software engineer",
-						"startDate: "December 2019",
-						"endDate": "December 2020",
-						"company": "Microsoft",
-						"work": [
-							"Developed an API for tracking return-to-office attendance",
-							"Mentored incompetent engineers to be competent",
-							...
-							...
-						]
-					}
-					...
-					...
-				]
-			}
-		`, userId, extractedResumeText)
-		geminiResponse, err := geminiService.PromptGemini(initalContextPrompt)
+		initialContextPrompt := models.GetInitialResumeCreationPrompt(userId, extractedResumeText)
+		summarizedResumeDetails, err := geminiService.PromptGemini(initialContextPrompt)
 		if err != nil {
 			log.Err(err).Msg("Failed to save context for resume via gemini prompt")
-			c.JSON(http.StatusInternalServerError, models.ErrorResponse{Message: "Error prompting gemini for initial resume context"})
+			c.JSON(http.StatusInternalServerError, models.ErrorResponse{Message: "Error prompting Gemini for initial resume context"})
 			return
 		}
 
-		log.Info().Msgf("Received response from Gemini: %v", geminiResponse)
+		// Ensure it is the correct JSON format
+		var resumeDetails models.ResumeDetails
+		err = json.Unmarshal([]byte(summarizedResumeDetails), &resumeDetails)
+		if err != nil {
+			log.Err(err).Msgf("Gemini model response failed to conform to the expected ResumeDetails struct: %v", summarizedResumeDetails)
+			c.JSON(http.StatusInternalServerError, models.ErrorResponse{Message: "Error found in Gemini generated response"})
+			return
+		}
+
+		log.Info().Msgf("Received response from Gemini: %v", resumeDetails)
 
 		// Store gemini prompt and response to prompt history in db
-		err = firebaseService.StoreToPromptHistory(userId, initalContextPrompt, "user")
+		err = firebaseService.StoreToPromptHistory(userId, initialContextPrompt, "user")
 		if err != nil {
 			log.Err(err).Msg("Could not store resume context initial prompt from gemini to firebase")
 			c.JSON(http.StatusInternalServerError, models.ErrorResponse{Message: "Error storing resume context prompt in db"})
 			return
 		}
-		err = firebaseService.StoreToPromptHistory(userId, geminiResponse, "model")
+		err = firebaseService.StoreToPromptHistory(userId, summarizedResumeDetails, "model")
 		if err != nil {
 			log.Err(err).Msg("Could not store resume context prompt response from gemini to firebase")
 			c.JSON(http.StatusInternalServerError, models.ErrorResponse{Message: "Error storing resume context prompt response in db"})
@@ -129,34 +98,46 @@ func CreateResume(visionService *services.VisionService, firebaseService *servic
 		}
 
 		// Return response for request
-		c.Data(http.StatusOK, "application/json", []byte(geminiResponse))
+		c.JSON(http.StatusOK, resumeDetails)
 	}
 }
 
-func UpdateResume(c *gin.Context) {
-	// Source userId from path param
-	userId := c.Param("userId")
-	log.Info().Msgf("Processing resume creation request for user: %s", userId)
+func UpdateResume(firebaseService *services.FirebaseService) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		// Source userId from path param
+		userId := c.Param("userId")
+		log.Info().Msgf("Processing resume update request for user: %s", userId)
 
-	// Bind request body to UpdateResumeRequest struct
-	var updateResumeRequest models.UpdateResumeRequest
-	if err := c.ShouldBindJSON(&updateResumeRequest); err != nil {
-		// Bad Request for non-JSON body
-		log.Error().Msgf("Received UpdateResume request with non-JSON body")
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid JSON payload"})
-		return
+		// Bind request body to UpdateResumeRequest struct
+		var updateResumeRequest models.UpdateResumeRequest
+		if err := c.ShouldBindJSON(&updateResumeRequest); err != nil {
+			// Bad Request for non-JSON body
+			log.Error().Msgf("Received UpdateResume request with non-JSON body")
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid JSON payload"})
+			return
+		}
+
+		// Check if required fields are present
+		if updateResumeRequest.Experience == "" {
+			log.Error().Msgf("Received UpdateResume request with malformed JSON body: %v", updateResumeRequest)
+			c.JSON(http.StatusBadRequest, &models.ErrorResponse{Message: "Missing or empty required field"})
+			return
+		}
+
+		log.Info().Msgf("Received UpdateResume request with experience: %v", updateResumeRequest.Experience)
+
+		// Retrieve prompt history for the user
+		promptHistory, err := firebaseService.GetResumePromptHistory(userId)
+		if err != nil {
+			log.Err(err).Msgf("Could not fetch resume prompt history for user: %s", userId)
+			c.JSON(http.StatusInternalServerError, models.ErrorResponse{Message: "Something failed while getting data"})
+			return
+		}
+
+		log.Info().Msgf("Prompt history: %v", promptHistory)
+
+		c.JSON(http.StatusOK, &models.ErrorResponse{Message: "Experience saved successfully"})
 	}
-
-	// Check if required fields are present
-	if updateResumeRequest.Experience == "" || updateResumeRequest.UserID == "" {
-		log.Error().Msgf("Received UpdateResume request with malformed JSON body: %v", updateResumeRequest)
-		c.JSON(http.StatusBadRequest, &models.ErrorResponse{Message: "Missing or empty required field"})
-		return
-	}
-
-	log.Info().Msgf("Received UpdateResume request with body: %v", updateResumeRequest)
-
-	c.JSON(http.StatusOK, &models.ErrorResponse{Message: "Experience saved successfully"})
 }
 
 func GetResume(firebaseService *services.FirebaseService) gin.HandlerFunc {

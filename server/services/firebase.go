@@ -64,6 +64,7 @@ func (s *FirebaseService) StoreNewResume(userId string, resumeInText string) err
 func (s *FirebaseService) GetResumePromptHistory(userId string) ([]models.PromptHistoryDocument, error) {
 	promptHistorySubCollectionRef := s.FirestoreClient.Collection(resumeCollection).Doc(userId).Collection(promptHistorySubCollection)
 	promptHistory, err := promptHistorySubCollectionRef.OrderBy("createdAt", firestore.Direction(1)).Documents(s.ctx).GetAll()
+	log.Info().Msgf("Retrieved prompt history for user %s: %v", userId, promptHistory)
 	if err != nil {
 		return make([]models.PromptHistoryDocument, 0), err
 	}
