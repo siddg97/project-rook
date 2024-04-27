@@ -1,9 +1,11 @@
 import { Button, Input } from '@nextui-org/react';
 import { useState } from 'react';
 import { uploadResume } from '../utils/api-utils';
+import { useStore } from '../hooks/useStore';
 
 function Home() {
   const [file, setFile] = useState<File | null>(null);
+  const { auth } = useStore();
   
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
@@ -14,7 +16,10 @@ function Home() {
 
   const handleFileUpload = async () => {
     if (file) {
-      uploadResume(file);
+      const uid = auth.authenticatedUser ? auth.authenticatedUser.uid : null;
+      if (uid) {
+        uploadResume(file, uid);
+      }
     }
   }
 
