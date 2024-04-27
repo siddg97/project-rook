@@ -2,8 +2,9 @@ package services
 
 import (
 	"context"
-	"github.com/siddg97/project-rook/models"
 	"time"
+
+	"github.com/siddg97/project-rook/models"
 
 	"cloud.google.com/go/firestore"
 	firebase "firebase.google.com/go"
@@ -91,6 +92,9 @@ func (s *FirebaseService) StoreToPromptHistory(userId string, promptText string,
 		log.Err(err).Msgf("Failed to write to prompt history for user: %s", userId)
 		return err
 	}
+
+	log.Info().Msgf("Saved prompt for role: %s to prompt history: %s", role, promptText)
+
 	return nil
 }
 func (s *FirebaseService) GetResume(userId string) (*models.ResumeDocument, error) {

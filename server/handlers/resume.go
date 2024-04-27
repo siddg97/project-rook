@@ -2,10 +2,11 @@ package handlers
 
 import (
 	"fmt"
-	"github.com/siddg97/project-rook/models"
-	"github.com/siddg97/project-rook/services"
 	"io"
 	"net/http"
+
+	"github.com/siddg97/project-rook/models"
+	"github.com/siddg97/project-rook/services"
 
 	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog/log"
@@ -54,13 +55,64 @@ func CreateResume(visionService *services.VisionService, firebaseService *servic
 		}
 
 		// Setup context with initial prompt to gemini
-		initalContextPrompt := fmt.Sprintf("%s\n\n data to update relevant sections of this resume will be provided", extractedResumeText)
+		initalContextPrompt := fmt.Sprintf(`
+			This is the initial resume text extracted from a resume file uploaded by the user denoted by their id %s.
+			The resume extracted text is bounded within ~~~.
+			~~~
+			%s
+			~~~
+			
+			Please keep note of this initial resume state going forward and expect new work summaries to be provided from the user in the future. 
+			Please always incorporate the new work summaries into the resume only if it is significant enough. 
+			At this point, please summarize the work that the user has done in a JSON format like the following example:
+			{
+				"userId": "a-user-id",
+				"skills": [
+					{
+						"name": "AWS Lambda",
+						"yearsOfExperience": 4,
+					},
+					...
+					...
+				],
+				"work-summaries": [
+					{
+						"title": "Software engineer",
+						"startDate: "December 2020",
+						"endDate": "Present",
+						"company": "Amazon",
+						"work": [
+							"Developed an API for tracking return-to-office attendance",
+							"Mentored incompetent engineers to be competent",
+							...
+							...
+						]
+					},
+					{
+						"title": "Software engineer",
+						"startDate: "December 2019",
+						"endDate": "December 2020",
+						"company": "Microsoft",
+						"work": [
+							"Developed an API for tracking return-to-office attendance",
+							"Mentored incompetent engineers to be competent",
+							...
+							...
+						]
+					}
+					...
+					...
+				]
+			}
+		`, userId, extractedResumeText)
 		geminiResponse, err := geminiService.PromptGemini(initalContextPrompt)
 		if err != nil {
 			log.Err(err).Msg("Failed to save context for resume via gemini prompt")
 			c.JSON(http.StatusInternalServerError, models.ErrorResponse{Message: "Error prompting gemini for initial resume context"})
 			return
 		}
+
+		log.Info().Msgf("Received response from Gemini: %v", geminiResponse)
 
 		// Store gemini prompt and response to prompt history in db
 		err = firebaseService.StoreToPromptHistory(userId, initalContextPrompt, "user")
@@ -77,11 +129,15 @@ func CreateResume(visionService *services.VisionService, firebaseService *servic
 		}
 
 		// Return response for request
-		c.JSON(http.StatusOK, gin.H{"text": extractedResumeText})
+		c.Data(http.StatusOK, "application/json", []byte(geminiResponse))
 	}
 }
 
 func UpdateResume(c *gin.Context) {
+	// Source userId from path param
+	userId := c.Param("userId")
+	log.Info().Msgf("Processing resume creation request for user: %s", userId)
+
 	// Bind request body to UpdateResumeRequest struct
 	var updateResumeRequest models.UpdateResumeRequest
 	if err := c.ShouldBindJSON(&updateResumeRequest); err != nil {
