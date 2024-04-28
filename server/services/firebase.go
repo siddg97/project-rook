@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"sort"
 	"time"
 
 	"github.com/siddg97/project-rook/models"
@@ -63,9 +64,9 @@ func (s *FirebaseService) StoreNewResume(userId string, resumeInText string) err
 
 func (s *FirebaseService) GetResumePromptHistory(userId string) ([]models.PromptHistoryDocument, error) {
 	promptHistorySubCollectionRef := s.FirestoreClient.Collection(resumeCollection).Doc(userId).Collection(promptHistorySubCollection)
-	promptHistory, err := promptHistorySubCollectionRef.OrderBy("createdAt", firestore.Direction(1)).Documents(s.ctx).GetAll()
-	log.Info().Msgf("Retrieved prompt history for user %s: %v", userId, promptHistory)
+	promptHistory, err := promptHistorySubCollectionRef.Documents(s.ctx).GetAll()
 	if err != nil {
+		log.Err(err).Msgf("Error retrieving prompt history for user %s", userId)
 		return make([]models.PromptHistoryDocument, 0), err
 	}
 
@@ -75,6 +76,10 @@ func (s *FirebaseService) GetResumePromptHistory(userId string) ([]models.Prompt
 		docRef.DataTo(&doc)
 		promptHistoryDocs = append(promptHistoryDocs, doc)
 	}
+
+	sort.Slice(promptHistoryDocs, func(i, j int) bool {
+		return promptHistoryDocs[i].CreatedAt.Before(promptHistoryDocs[j].CreatedAt)
+	})
 
 	return promptHistoryDocs, nil
 }
