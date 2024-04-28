@@ -33,7 +33,7 @@ func SetupRoutes(router *gin.Engine, visionService *services.VisionService, fire
 		7. Updates the prompt history collection of the user
 		8. Send log of updated resume section back to client
 		*/
-		versionOne.POST("/:userId/resume", handlers.UpdateResume(firebaseService))
+		versionOne.POST("/:userId/resume", handlers.UpdateResume(firebaseService, geminiService))
 
 		/**
 		1. Load up prompt history so far from db

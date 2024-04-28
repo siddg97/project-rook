@@ -6,8 +6,20 @@ type CreateResumeRequest struct {
 	Resume *multipart.FileHeader
 }
 
+type CreateResumeResponse struct {
+	// TODO: Change to use ResumeDocument
+	Resume        string        `json:"resume"`
+	ResumeDetails ResumeDetails `json:"resumeDetails"`
+}
+
 type UpdateResumeRequest struct {
 	Experience string `json:"experience"`
+}
+
+type UpdateResumeResponse struct {
+	// TODO: Change to use ResumeDocument
+	Resume        string        `json:"resume"`
+	ResumeDetails ResumeDetails `json:"resumeDetails"`
 }
 
 type GetResumeRequest struct {

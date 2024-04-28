@@ -1,6 +1,9 @@
 package models
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
+)
 
 type ResumeDetails struct {
 	UserID           string            `json:"userId"`
@@ -39,7 +42,7 @@ type Education struct {
 	NotableAchievements []string `json:"notableAchievements,omitempty"`
 }
 
-func GetInitialResumeCreationPrompt(userId string, extractedResumeText string) string {
+func GetInitialResumeCreationPrompt(userId, extractedResumeText string) string {
 	return fmt.Sprintf(`
 		You are a resume maintainance and enhancement bot that helps user track their work summaries across time and update it to the best of your ability such that it increases the user's chance of receiving a call back from companies they applied for.
 
@@ -100,4 +103,50 @@ func GetInitialResumeCreationPrompt(userId string, extractedResumeText string) s
 		~~~
 		Please generate a similar JSON object for the work that the user has done based on the given resume extracted text, remembering to remove ~~~. 
 	`, userId, extractedResumeText)
+}
+
+func GetAddExperiencePrompt(userId string, promptHistory []PromptHistoryDocument, newExperience string) string {
+	var promptBuilder strings.Builder
+
+	// Setup all of the previous user prompts. This includes:
+	// - the initial context prompt with system prompt that the model is to act as a resume maintenance and enhancement bot
+	// - any previous experience that were added
+	// - every step's model output with text prompting that this was the model's response before
+	for _, doc := range promptHistory {
+		if doc.Role == "user" {
+			promptBuilder.WriteString(fmt.Sprintf("On %v, the user has reported the following", doc.CreatedAt))
+			promptBuilder.WriteString(doc.Text)
+			promptBuilder.WriteString("\n\n")
+		}
+
+		if doc.Role == "model" {
+			promptBuilder.WriteString(fmt.Sprintf("At this point, you have concluded that the below are the details of the resume in valid JSON escaped string format: %s", doc.Text))
+			promptBuilder.WriteString("\n\n")
+		}
+	}
+
+	// Add the new experience prompt into the end of the prompt
+	promptBuilder.WriteString(
+		fmt.Sprintf(`
+			The user has reported another skill, work summary, personal project, or education update. The update is bound within three tilde
+			~~~
+			%s
+			~~~
+			Please take note of this report and generate the newest, most appropriate JSON object for the work that the user has done based on all of the context above. 
+		`, newExperience))
+
+	return promptBuilder.String()
+}
+
+func GetGenerateResumePrompt(userId string, resumeDetails string) string {
+	return fmt.Sprintf(`
+	Given the following JSON object depicting the user %s resume details bounded within three tildes
+	~~~
+	%s
+	~~~
+	please generate a resume for applying to Software Engineer related roles with the objective to get past applicant tracking systems (ASTs) used by many companies out there. 
+	We want the best chances for the user to succeed in getting a call back from their job applications.
+
+	Please limit the length of the resume to one US letter size page, or 1500 to 1800 characters. Please generate this in escaped text format and include any unicode characters as you see fit.
+	`, userId, resumeDetails)
 }
