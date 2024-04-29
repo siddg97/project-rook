@@ -1,14 +1,22 @@
-import axios from "axios";
+import axios, { AxiosResponse } from "axios";
 
 const client = axios.create();
+const BASE_URL = "http://localhost:3000"
 
 export function uploadResume(file: File, uid: string) {
     const data = new FormData();
     data.append("file", file);
 
-    client.put(`http://localhost:3000/v1/${uid}/resume`, data, { // TODO: Replace base URL with env
+    client.put(`${BASE_URL}/v1/${uid}/resume`, data, { // TODO: Replace base URL with env
         headers: {
             'Content-Type': 'multipart/form-data',
         }
     });
+}
+
+export function submitExperience(experience: string, uid: string): Promise<AxiosResponse<unknown, unknown>> {
+    const data = {
+        "experience": experience
+    }
+    return client.post(`${BASE_URL}/v1/${uid}/resume`, data)
 }
