@@ -21,6 +21,7 @@ interface Props {
 
 const pathToPageTitleMappings: Record<string, string> = {
   '/': 'Upload resume',
+  '/experience/new': 'Add experience',
   '/summary': 'Summary',
 };
 

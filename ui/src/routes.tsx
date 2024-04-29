@@ -1,5 +1,5 @@
 import { ReactNode } from 'react';
-import { Home, Login, Summary } from './pages';
+import { AddExperience, Home, Login, Summary } from './pages';
 
 export interface AppRoute {
   key: string;
@@ -22,6 +22,13 @@ export const routes: AppRoute[] = [
     path: '/summary',
     navText: 'Summary',
     component: <Summary />,
+    isProtected: true,
+  },
+  {
+    key: 'addExperience',
+    path: '/experience/new',
+    navText: 'Add experience',
+    component: <AddExperience />,
     isProtected: true,
   },
   {

@@ -8,6 +8,12 @@ export const sectionItems: SidebarItem[] = [
     title: 'Home',
   },
   {
+    key: 'addExperience',
+    href: '/experience/new',
+    icon: 'solar:document-add-linear',
+    title: 'Add experience',
+  },
+  {
     key: 'summary',
     href: '/summary',
     icon: 'solar:checklist-minimalistic-outline',
