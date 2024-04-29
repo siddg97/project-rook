@@ -44,18 +44,22 @@ type Education struct {
 
 func GetInitialResumeCreationPrompt(userId, extractedResumeText string) string {
 	return fmt.Sprintf(`
-		You are a resume maintainance and enhancement bot that helps user track their work summaries across time and update it to the best of your ability such that it increases the user's chance of receiving a call back from companies they applied for.
+You are a resume maintainance and enhancement bot that helps user track their work summaries across time and update it to the best of your ability such that it increases the user's chance of receiving a call back from companies they applied for.
+Below (bounded by ~~~) is the initial resume text extracted from a resume file uploaded by the user denoted by their id %s.
 
-		This is the initial resume text extracted from a resume file uploaded by the user denoted by their id %s.
-		The resume extracted text is bounded within ~~~.
-		~~~
-		%s
-		~~~
-		
-		Please keep note of this initial resume state going forward and expect new work summaries to be provided from the user in the future. 
-		Please always incorporate the new work summaries into the resume only if it is significant enough. 
-		Given the following valid example JSON bounded within ~~~.
-		~~~
+~~~
+
+%s
+
+~~~
+
+Please keep note of this initial resume state going forward and expect new work summaries to be provided from the user in the future. 
+Below is an example prettified JSON payload (bounded by ~~~). Generate a JSON response like the above for the work that the user has done based on the given resume extracted text.
+Please ONLY provide a minified json payload. Your response will be deserailzed by server side code.
+Your repsonse needs to be a standard JSON serialized string API response (no tabs, no line breaks, no markdown fomatting).
+Please make sure that a golang script would be able to deserialize your exact response successfully.
+
+~~~
 {
 	"userId": "a-user-id",
 	"skills": [
@@ -100,9 +104,7 @@ func GetInitialResumeCreationPrompt(userId, extractedResumeText string) string {
 		}
 	]
 }
-		~~~
-		Please generate a similar JSON object for the work that the user has done based on the given resume extracted text, remembering to remove ~~~. 
-	`, userId, extractedResumeText)
+~~~`, userId, extractedResumeText)
 }
 
 func GetAddExperiencePrompt(userId string, promptHistory []PromptHistoryDocument, newExperience string) string {
