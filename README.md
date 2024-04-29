@@ -7,38 +7,10 @@ Welcome to the project repository! This is a monorepo that contains two main com
 The repository is organized as follows:
 
 ```
-.
 ├── LICENSE
 ├── README.md
-├── server
-│   ├── cmd
-│   │   ├── config.go
-│   │   └── main.go
-│   ├── go.mod
-│   ├── go.sum
-│   └── pkg
-│       ├── api.go
-│       ├── models
-│       │   └── responses.go
-│       ├── routes
-│       │   └── health.go
-│       └── utils
-│           └── env.go
-└── ui
-    ├── README.md
-    ├── index.html
-    ├── package-lock.json
-    ├── package.json
-    ├── public
-    │   └── vite.svg
-    ├── src
-    │   ├── App.tsx
-    │   ├── index.css
-    │   ├── main.tsx
-    │   └── vite-env.d.ts
-    ├── tsconfig.json
-    ├── tsconfig.node.json
-    └── vite.config.ts
+├── server -----------> Directory containing server source code (go)
+└── ui ---------------> Directory containing frontend code (react/ts)
 ```
 
 ## Prerequisites
@@ -90,10 +62,9 @@ For the frontend, you'll need to update your Node.js installation to use NVM and
    PORT=3000
    ENV=local
    GEMINI_KEY=<Google Gemini API Key>
+   GOOGLE_APPLICATION_CREDENTIALS=/absolute/path/to/repo/project-rook/server/gcp-sa.json # Update this path accordingly
    ```
-4. Create a `firebase_credentials.json` file with a private key generated from Firebase console
-5. Setup authentication for Cloud Vision API by following: https://cloud.google.com/vision/docs/libraries#authentication
-   - This will require you to install `gcloud` CLI and generate a credential file for ADC to use on any services that require credentials from ADC. Cloud Vision API is one such service. The credential file generation will require you to login to the GCP hackathon shared account and select the hackathon project id. 
+4. Create a `gcp-sa.json` file with a [private key generated from gcloud console](https://console.cloud.google.com/iam-admin/serviceaccounts/details/102126832070335213872/keys?hl=en&project=western-voyage-419302) (click `ADD KEY` and download the json file)
 5. Run the Go server:
    ```bash
    go run .
@@ -105,11 +76,18 @@ For the frontend, you'll need to update your Node.js installation to use NVM and
 > ./bin/server
 > ```
 
-> To check if server is running execute
+> If you wish to run a docker container for the server, do the setup for local as described above. Then install docker, and run the following commands
 > ```shell
-> curl http:/localhost:3000/checks/ping
-> # {"ping":"pong"}
+> cd server
+> docker build -t server .
+> docker run -p 3000:3000 -e GEMINI_KEY=<Google Gemini API Key> -e GOOGLE_APPLICATION_CREDENTIALS=/gcp-sa.json -v ./gcp-sa.json:/gcp-sa.json server
 > ```
+
+- To check if server is running execute
+    ```shell
+    curl http:/localhost:3000/checks/ping
+    # {"ping":"pong"}
+    ```
 
 ### React Frontend
 

@@ -26,17 +26,17 @@ func (s *Server) SetupServer() {
 }
 
 func main() {
+	ctx := context.Background()
+
 	// Setup server config
-	cfg, err := config.InitConfig()
+	cfg, err := config.InitConfig(ctx)
 	if err != nil {
 		log.Err(err).Msg("Failed to initialize server config due to fatal error")
 		panic(err)
 	}
 
-	ctx := context.Background()
-
 	// Setup Firebase
-	firebaseService, err := services.InitializeFirebase(ctx, cfg.FirebaseCredentialsPath)
+	firebaseService, err := services.InitializeFirebase(ctx)
 	if err != nil {
 		log.Err(err).Msg("Failed to initialize firebase clients")
 		panic(err)

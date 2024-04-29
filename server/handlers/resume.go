@@ -71,6 +71,7 @@ func CreateResume(visionService *services.VisionService, firebaseService *servic
 			c.JSON(http.StatusInternalServerError, models.ErrorResponse{Message: "Error prompting Gemini for initial resume context"})
 			return
 		}
+		log.Info().Msgf("%s", summarizedResumeDetails)
 
 		// Ensure it is the correct JSON format
 		var resumeDetails models.ResumeDetails

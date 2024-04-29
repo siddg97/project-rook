@@ -10,7 +10,6 @@ import (
 	"cloud.google.com/go/firestore"
 	firebase "firebase.google.com/go"
 	"github.com/rs/zerolog/log"
-	"google.golang.org/api/option"
 )
 
 type FirebaseService struct {
@@ -22,10 +21,8 @@ type FirebaseService struct {
 const resumeCollection = "resumes"
 const promptHistorySubCollection = "promptHistory"
 
-func InitializeFirebase(ctx context.Context, firebaseConfigPath string) (*FirebaseService, error) {
-	opt := option.WithCredentialsFile(firebaseConfigPath)
-
-	firebaseApp, err := firebase.NewApp(ctx, nil, opt)
+func InitializeFirebase(ctx context.Context) (*FirebaseService, error) {
+	firebaseApp, err := firebase.NewApp(ctx, nil)
 	if err != nil {
 		log.Error().Msgf("Error creating Firebase app: %v", err)
 		return nil, err

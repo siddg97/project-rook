@@ -21,6 +21,8 @@ resume.pdf
 
 # Keys
 firebase_credentials.json
+.firebase
+gcp-sa.json
 
 # Editor directories and files
 .vscode/*
