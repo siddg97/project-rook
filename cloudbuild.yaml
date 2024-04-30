@@ -1,0 +1,13 @@
+steps:
+  # Build the container image
+  - name: 'gcr.io/cloud-builders/docker'
+    args: [ 'build', '-t', 'gcr.io/western-voyage-419302/github.com/siddg97/project-rook:$SHORT_SHA', './server' ]
+  # Push the container image to Container Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args: [ 'push', 'gcr.io/western-voyage-419302/github.com/siddg97/project-rook:$SHORT_SHA' ]
+  # Deploy container image to Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args: [ 'run', 'deploy', 'project-rook', '--image', 'gcr.io/western-voyage-419302/github.com/siddg97/project-rook:$SHORT_SHA', '--region', 'us-central1' ]
+images:
+  - gcr.io/western-voyage-419302/siddg97/project-rook
