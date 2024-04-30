@@ -14,12 +14,15 @@ import {
 function Summary() {
   const [experienceHistory, setExperienceHistory] =
     useState<ExperienceHistory | null>(null);
-  const { auth } = useStore();
+  const {
+    auth,
+    env: { local },
+  } = useStore();
 
   useEffect(() => {
     const uid = auth.authenticatedUser ? auth.authenticatedUser.uid : null;
     if (uid) {
-      getExperience(uid)
+      getExperience(uid, local)
         .then(response => {
           const history = {
             promptHistory: response.data.promptHistory.sort(

@@ -8,6 +8,13 @@
     ],
     "rewrites": [
       {
+        "source": "/v1/**",
+        "run": {
+          "serviceId": "project-rook",
+          "region": "us-central1"
+        }
+      },
+      {
         "source": "**",
         "destination": "/index.html"
       }

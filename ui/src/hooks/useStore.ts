@@ -6,6 +6,9 @@ import { User } from 'firebase/auth';
 import { initializeFirebase } from '../utils';
 
 interface AppStore {
+  env: {
+    local: boolean;
+  };
   firebase: {
     app: FirebaseApp;
   };
@@ -21,6 +24,9 @@ interface AppStore {
 export const useStore = create<AppStore>()(
   devtools(
     immer(_set => ({
+      env: {
+        local: window.location.host.includes('localhost'),
+      },
       firebase: {
         app: initializeFirebase(),
       },
