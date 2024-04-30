@@ -5,6 +5,7 @@ import { submitExperience } from "../utils/api-utils";
 
 function AddExperience() {
     const [experience, setExperience] = useState<string>("")
+    const [isSubmittingExperience, setIsSubmittingExperience] = useState<boolean>(false)
     const [showExperienceSubmittedModal, setShowExperienceSubmittedModal] = useState<boolean>(false)
     const [showExperienceSubmitFailedModal, setShowExperienceSubmitFailedModal] = useState<boolean>(false)
     const { auth } = useStore();
@@ -12,13 +13,16 @@ function AddExperience() {
     const handleSubmitExperience = () => {
         const uid = auth.authenticatedUser ? auth.authenticatedUser.uid : null;
         if (uid) {
+            setIsSubmittingExperience(true);
             submitExperience(experience, uid)
                 .then((response) => {
-                    console.log(`Submitted experience. Response: ${response}`);
-                    setShowExperienceSubmittedModal(false);
+                    console.log(`Submitted experience. Response: ${JSON.stringify(response)}`);
+                    setIsSubmittingExperience(false);
+                    setShowExperienceSubmittedModal(true);
                 })
                 .catch((err) => {
                     console.log(`Failed to submit experience due to: ${err}`);
+                    setIsSubmittingExperience(false);
                     setShowExperienceSubmitFailedModal(true);
                 })
         }
@@ -72,7 +76,11 @@ function AddExperience() {
                     placeholder="Describe the experience (e.g. Rested & vested)"
                     onValueChange={(value: string) => setExperience(value)}
                 />
-                <Button color="primary" onPress={handleSubmitExperience}>
+                <Button
+                    color="primary"
+                    onPress={handleSubmitExperience}
+                    isLoading={isSubmittingExperience}
+                >
                     Submit
                 </Button>
             </div>
