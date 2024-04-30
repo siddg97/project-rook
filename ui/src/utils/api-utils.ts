@@ -20,3 +20,11 @@ export function submitExperience(experience: string, uid: string): Promise<Axios
     }
     return client.post(`${BASE_URL}/v1/${uid}/resume`, data)
 }
+
+export function getExperience(uid: string): Promise<AxiosResponse<unknown, unknown>> {
+    return client.get(`${BASE_URL}/v1/${uid}/resume`, {
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    });
+}
