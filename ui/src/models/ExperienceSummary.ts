@@ -1,9 +1,17 @@
 export interface ExperienceHistory {
-    promptHistory: Array<PromptHistoryEntry>
+  resume: Resume;
+  promptHistory: PromptHistory[];
 }
 
-export interface PromptHistoryEntry {
-    id: string,
-    createdAt: string,
-    value: string,
+export interface Resume {
+  userId: string;
+  resumeId: string;
+  resumeText: string;
+}
+
+export interface PromptHistory {
+  id: string;
+  createdAt: string;
+  role: string;
+  text: string;
 }

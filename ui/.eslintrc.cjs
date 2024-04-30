@@ -41,5 +41,6 @@ module.exports = {
     '@typescript-eslint/no-non-null-assertion': 'off',
     '@typescript-eslint/ban-ts-comment': 'off',
     'react/prop-types': 'warn',
+    '@typescript-eslint/no-unused-vars': 'off',
   },
 };
