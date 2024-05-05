@@ -65,7 +65,7 @@ Please do not format the response in markdown and no backticks of any sort
 `, userId, extractedResumeText)
 }
 
-func GetAddExperiencePrompt(userId string, newExperience string) string {
+func AddExperiencePrompt(userId string, newExperience string) string {
 	return fmt.Sprintf(`
 Based on the current state of resume for user %s, please add the folowing new experience (bounded by ~~~) to it
 
@@ -75,7 +75,7 @@ Based on the current state of resume for user %s, please add the folowing new ex
 
 ~~~
 
-Once you have updated the appropriate sections of the resume can you please provide a JSON log of what was changed in the resume. Please do not format the response in markdown and no backticks of any sort
+Once you have updated the appropriate sections of the resume can you please provide the JSON equivalent of the updated resume as described. Only include JSON document with markdown formatting.
 `, userId, newExperience)
 }
 

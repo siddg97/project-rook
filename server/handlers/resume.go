@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 
@@ -135,9 +136,14 @@ func UpdateResume(firebaseService *services.FirebaseService, geminiService *serv
 			c.JSON(http.StatusInternalServerError, models.ErrorResponse{Message: "Something failed while getting data"})
 			return
 		}
+		if len(promptHistory) < 2 {
+			log.Error().Msgf("Expected at least 2 resume prompts before update request can be processed, but found %s prompt(s)", len(promptHistory))
+			c.JSON(http.StatusBadRequest, models.ErrorResponse{Message: fmt.Sprintf("Expected at least 2 resume prompts before update request can be processed, but found %s prompt(s)", len(promptHistory))})
+			return
+		}
 
-		// Generate the new experience prompt
-		addExperiencePrompt := models.GetAddExperiencePrompt(userId, updateResumeRequest.Experience)
+		// Update the resume with the experience prompt
+		addExperiencePrompt := models.AddExperiencePrompt(userId, updateResumeRequest.Experience)
 		newResumeDetails, err := geminiService.PromptGeminiWithHistory(promptHistory, addExperiencePrompt)
 		if err != nil {
 			log.Err(err).Msg("Failed to save new experience for user via gemini prompt")
@@ -172,25 +178,16 @@ func UpdateResume(firebaseService *services.FirebaseService, geminiService *serv
 			return
 		}
 
-		// Generate the new resume prompt
-		generateResumePrompt := models.GetGenerateResumePrompt(userId, newResumeDetails)
-		resume, err := geminiService.PromptGemini(generateResumePrompt)
-		if err != nil {
-			log.Err(err).Msg("Failed to save new resume text for user via gemini prompt")
-			c.JSON(http.StatusInternalServerError, models.ErrorResponse{Message: "Error prompting Gemini for updating the user's resume"})
-			return
-		}
-
 		// Store new resume in db
-		err = firebaseService.StoreNewResume(userId, resume)
+		err = firebaseService.StoreNewResume(userId, newResumeDetails)
 		if err != nil {
-			log.Err(err).Msg("Could not store resume to firebase")
+			log.Err(err).Msg("Could not store updated resume to firebase")
 			c.JSON(http.StatusInternalServerError, models.ErrorResponse{Message: "Error storing resume in db"})
 			return
 		}
 
 		c.JSON(http.StatusOK, models.UpdateResumeResponse{
-			Resume:        resume,
+			Resume:        newResumeDetails,
 			ResumeDetails: resumeDetails,
 		})
 	}
