@@ -1,49 +1,47 @@
-import { Button, Input } from '@nextui-org/react';
-import { useState } from 'react';
+import { Button, Spinner } from '@nextui-org/react';
+import { ChangeEvent, useState } from 'react';
 import { uploadResume } from '../utils/api-utils';
 import { useStore } from '../hooks/useStore';
 
 function Home() {
-  const [file, setFile] = useState<File | null>(null);
   const {
     auth,
     env: { local },
   } = useStore();
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      const selectedFile: File = e.target.files[0];
-      setFile(selectedFile);
-    }
-  };
+  const [isUploadingResume, setIsUploadingResume] = useState<boolean>(false);
 
-  const handleFileUpload = async () => {
-    if (file) {
-      const uid = auth.authenticatedUser ? auth.authenticatedUser.uid : null;
-      if (uid) {
-        uploadResume(file, uid, local);
-      }
+  const handleFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
+    const hasOneFile: boolean = e.target.files?.length === 1;
+    if (hasOneFile) {
+      setIsUploadingResume(true);
+      const selectedFile: File = e.target.files[0];
+      const uid = auth.authenticatedUser.uid;
+      await uploadResume(selectedFile, uid, local);
+      setIsUploadingResume(false);
     }
   };
 
   return (
     <div className='w-full h-full'>
-      <div className='relative flex h-full flex-col'>
-        <Input type='file' label='Choose a file' onChange={handleFileChange} />
-        {file && (
-          <section>
-            File details:
-            <ul>
-              <li>Name: {file.name}</li>
-              <li>Type: {file.type}</li>
-              <li>Size: {file.size} bytes</li>
-            </ul>
-          </section>
-        )}
-        <Button color='primary' onClick={handleFileUpload}>
-          Upload Resume
+      {isUploadingResume ? (
+        <Spinner />
+      ) : (
+        <Button color='primary' fullWidth={false}>
+          <label
+            htmlFor='upload-resume'
+            className='cursor-pointer inline-block w-full'
+          >
+            Upload Resume
+          </label>
+          <input
+            id='upload-resume'
+            type='file'
+            className='hidden'
+            onChange={handleFileChange}
+          />
         </Button>
-      </div>
+      )}
     </div>
   );
 }

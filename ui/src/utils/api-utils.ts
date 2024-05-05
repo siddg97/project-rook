@@ -8,7 +8,7 @@ export function uploadResume(file: File, uid: string, local: boolean) {
   const data = new FormData();
   data.append('file', file);
 
-  client.put(`${local ? LOCAL_BASE_URL : ''}/v1/${uid}/resume`, data, {
+  return client.put(`${local ? LOCAL_BASE_URL : ''}/v1/${uid}/resume`, data, {
     headers: {
       'Content-Type': 'multipart/form-data',
     },

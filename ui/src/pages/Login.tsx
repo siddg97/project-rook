@@ -3,7 +3,12 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { Icon } from '@iconify/react';
 import { NavigateFunction, useLocation, useNavigate } from 'react-router-dom';
 import { useStore } from '../hooks/useStore.ts';
-import { GoogleAuthProvider, getAuth, signInWithPopup, UserCredential } from 'firebase/auth';
+import {
+  GoogleAuthProvider,
+  getAuth,
+  UserCredential,
+  signInWithPopup,
+} from 'firebase/auth';
 
 function Login() {
   const navigate: NavigateFunction = useNavigate();
