@@ -8,8 +8,8 @@ type CreateResumeRequest struct {
 
 type CreateResumeResponse struct {
 	// TODO: Change to use ResumeDocument
-	Resume        string        `json:"resume"`
-	ResumeDetails ResumeDetails `json:"resumeDetails"`
+	Resume        string             `json:"resume"`
+	ResumeDetails ModelResumeDetails `json:"resumeDetails"`
 }
 
 type UpdateResumeRequest struct {
@@ -18,8 +18,8 @@ type UpdateResumeRequest struct {
 
 type UpdateResumeResponse struct {
 	// TODO: Change to use ResumeDocument
-	Resume        string        `json:"resume"`
-	ResumeDetails ResumeDetails `json:"resumeDetails"`
+	Resume        string             `json:"resume"`
+	ResumeDetails ModelResumeDetails `json:"resumeDetails"`
 }
 
 type GetResumeRequest struct {

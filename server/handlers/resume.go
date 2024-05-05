@@ -74,15 +74,13 @@ func CreateResume(visionService *services.VisionService, firebaseService *servic
 		log.Info().Msgf("%s", summarizedResumeDetails)
 
 		// Ensure it is the correct JSON format
-		var resumeDetails models.ResumeDetails
+		var resumeDetails models.ModelResumeDetails
 		err = json.Unmarshal([]byte(summarizedResumeDetails), &resumeDetails)
 		if err != nil {
 			log.Err(err).Msgf("Gemini model response failed to conform to the expected ResumeDetails struct: %v", summarizedResumeDetails)
 			c.JSON(http.StatusInternalServerError, models.ErrorResponse{Message: "Error found in Gemini generated response"})
 			return
 		}
-
-		log.Info().Msgf("Received response from Gemini: %v", resumeDetails)
 
 		// Store gemini prompt and response to prompt history in db
 		err = firebaseService.StoreToPromptHistory(userId, initialContextPrompt, "user")
@@ -139,16 +137,18 @@ func UpdateResume(firebaseService *services.FirebaseService, geminiService *serv
 		}
 
 		// Generate the new experience prompt
-		addExperiencePrompt := models.GetAddExperiencePrompt(userId, promptHistory, updateResumeRequest.Experience)
-		newResumeDetails, err := geminiService.PromptGemini(addExperiencePrompt)
+		addExperiencePrompt := models.GetAddExperiencePrompt(userId, updateResumeRequest.Experience)
+		newResumeDetails, err := geminiService.PromptGeminiWithHistory(promptHistory, addExperiencePrompt)
 		if err != nil {
 			log.Err(err).Msg("Failed to save new experience for user via gemini prompt")
 			c.JSON(http.StatusInternalServerError, models.ErrorResponse{Message: "Error prompting Gemini for updating the user's new experience"})
 			return
 		}
 
+		log.Info().Msgf("%s", newResumeDetails)
+
 		// Ensure it is the correct JSON format
-		var resumeDetails models.ResumeDetails
+		var resumeDetails models.ModelResumeDetails
 		err = json.Unmarshal([]byte(newResumeDetails), &resumeDetails)
 		if err != nil {
 			log.Err(err).Msgf("Gemini model response failed to conform to the expected ResumeDetails struct: %v", newResumeDetails)

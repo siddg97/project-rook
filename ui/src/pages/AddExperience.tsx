@@ -23,23 +23,20 @@ function AddExperience() {
     env: { local },
   } = useStore();
 
-  const handleSubmitExperience = () => {
+  const handleSubmitExperience = async () => {
     const uid = auth.authenticatedUser ? auth.authenticatedUser.uid : null;
     if (uid) {
       setIsSubmittingExperience(true);
-      submitExperience(experience, uid, local)
-        .then(response => {
-          console.log(
-            `Submitted experience. Response: ${JSON.stringify(response)}`
-          );
-          setIsSubmittingExperience(false);
-          setShowExperienceSubmittedModal(true);
-        })
-        .catch(err => {
-          console.log(`Failed to submit experience due to: ${err}`);
-          setIsSubmittingExperience(false);
-          setShowExperienceSubmitFailedModal(true);
-        });
+      try {
+        const resp = await submitExperience(experience, uid, local);
+        console.log(`Submitted experience. Response: ${JSON.stringify(resp)}`);
+        setIsSubmittingExperience(false);
+        setShowExperienceSubmittedModal(true);
+      } catch (err) {
+        console.log(`Failed to submit experience due to: ${err}`);
+        setIsSubmittingExperience(false);
+        setShowExperienceSubmitFailedModal(true);
+      }
     }
   };
 

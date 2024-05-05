@@ -2,50 +2,50 @@ package models
 
 import (
 	"fmt"
-	"strings"
 )
 
-type ResumeDetails struct {
-	UserID           string            `json:"userId"`
-	Skills           []Skill           `json:"skills"`
-	WorkSummaries    []WorkSummary     `json:"workSummaries"`
-	PersonalProjects []PersonalProject `json:"personalProjects"`
-	Educations       []Education       `json:"educations"`
-}
-
-type Skill struct {
-	Name              string  `json:"name"`
-	YearsOfExperience float64 `json:"yearsOfExperience"`
-}
-
-type WorkSummary struct {
-	Title     string   `json:"title"`
-	StartDate string   `json:"startDate"`
-	EndDate   string   `json:"endDate"`
-	Company   string   `json:"company"`
-	Work      []string `json:"work"`
-}
-
-type PersonalProject struct {
-	Name                string   `json:"name"`
-	Role                string   `json:"role"`
-	StartDate           string   `json:"startDate"`
-	EndDate             string   `json:"endDate"`
-	Contributions       []string `json:"contributions"`
-	NotableAchievements []string `json:"notableAchievements,omitempty"`
-}
-
-type Education struct {
-	Institution         string   `json:"institution"`
-	Certification       string   `json:"certification"`
-	CertifiedDate       string   `json:"certifiedDate"`
-	NotableAchievements []string `json:"notableAchievements,omitempty"`
+type ModelResumeDetails struct {
+	ID      string `json:"id"`
+	Profile struct {
+		Name     string `json:"name"`
+		Email    string `json:"email"`
+		Phone    string `json:"phone"`
+		Location string `json:"location"`
+		Summary  string `json:"summary"`
+		Website  string `json:"website"`
+	} `json:"profile"`
+	Summary   string              `json:"summary"`
+	Skills    map[string][]string `json:"skills"`
+	Education struct {
+		Institution string   `json:"institution"`
+		Location    string   `json:"location"`
+		Degree      string   `json:"degree"`
+		Major       string   `json:"major"`
+		Graduation  string   `json:"graduation"`
+		Gpa         string   `json:"gpa"`
+		Awards      []string `json:"awards"`
+	} `json:"education"`
+	Experience []struct {
+		Company   string `json:"company"`
+		Location  string `json:"location"`
+		Positions []struct {
+			Title            string   `json:"title"`
+			Duration         string   `json:"duration"`
+			Responsibilities []string `json:"responsibilities"`
+		} `json:"positions"`
+	} `json:"experience"`
+	Certifications []string `json:"certifications"`
+	Additional     struct {
+		Cfa       string   `json:"cfa"`
+		Interests []string `json:"interests"`
+		Languages []string `json:"languages"`
+	} `json:"additional"`
 }
 
 func GetInitialResumeCreationPrompt(userId, extractedResumeText string) string {
 	return fmt.Sprintf(`
 You are a resume maintainance and enhancement bot that helps user track their work summaries across time and update it to the best of your ability such that it increases the user's chance of receiving a call back from companies they applied for.
-Below (bounded by ~~~) is the initial resume text extracted from a resume file uploaded by the user denoted by their id %s.
+Below (bounded by ~~~) is the initial resume text extracted from a resume file uploaded by the user (denoted by id %s)
 
 ~~~
 
@@ -53,91 +53,30 @@ Below (bounded by ~~~) is the initial resume text extracted from a resume file u
 
 ~~~
 
-Please keep note of this initial resume state going forward and expect new work summaries to be provided from the user in the future. 
-Below is an example prettified JSON payload (bounded by ~~~). Generate a JSON response like the above for the work that the user has done based on the given resume extracted text.
-Please ONLY provide a minified json payload. Your response will be deserailzed by server side code.
-Your repsonse needs to be a standard JSON serialized string API response (no tabs, no line breaks, no markdown fomatting).
-Please make sure that a golang script would be able to deserialize your exact response successfully.
+Please keep note of this initial resume state going forward and expect new work summaries to be provided from the user in the future. Can you also summarize this resume in a JSON document. JSON document should have the following keys:
+- "id": the id of the user
+- "profile": an ojbect that has "name", "website", "phone" and "email" keys
+- "summary": a summary of the resume in a few lines
+- "skills": an object that has keys that denate a skill category and then the value of these keys to be a lis tof strings
+- "education": an object with "institution", "location", "degree", "major", "graduation" and "gpa" keys
+- "experience": array of objects. Each object has "company", "location" and "postions" keys. "positions" is an array of objects that contain "title", "duration", and "responsibilities" keys
+
+Please do not format the response in markdown and no backticks of any sort
+`, userId, extractedResumeText)
+}
+
+func GetAddExperiencePrompt(userId string, newExperience string) string {
+	return fmt.Sprintf(`
+Based on the current state of resume for user %s, please add the folowing new experience (bounded by ~~~) to it
 
 ~~~
-{
-	"userId": "a-user-id",
-	"skills": [
-		{
-			"name": "AWS Lambda",
-			"yearsOfExperience": 4
-		}
-	],
-	"workSummaries": [
-		{
-			"title": "Software engineer",
-			"startDate": "December 2020",
-			"endDate": "Present",
-			"company": "Amazon",
-			"work": [
-				"Developed an API for tracking return-to-office attendance"
-			]
-		}
-	],
-	"personalProjects": [
-		{
-			"name": "Google AI Hackathon",
-			"role": "Software Engineer",
-			"startDate": "December 2018",
-			"endDate": "Jan 2019",
-			"contributions": [
-				"Integrated backend server with Google Gemini client",
-				"Implemented dark mode on frontend ui"
-			],
-			"notableAchievements": "Won best original idea"
-		}
-	],
-	"educations": [
-		{
-			"institution": "University of British Columbia",
-			"certification": "Bachelor of Science, Major in Computer Science",
-			"certifiedDate": "December 2020",
-			"notableAchievements": [
-				"First place in internal hackathon in 2018",
-				"First place in internal hackathon in 2019"
-			]
-		}
-	]
-}
-~~~`, userId, extractedResumeText)
-}
 
-func GetAddExperiencePrompt(userId string, promptHistory []PromptHistoryDocument, newExperience string) string {
-	var promptBuilder strings.Builder
+%s
 
-	// Setup all of the previous user prompts. This includes:
-	// - the initial context prompt with system prompt that the model is to act as a resume maintenance and enhancement bot
-	// - any previous experience that were added
-	// - every step's model output with text prompting that this was the model's response before
-	for _, doc := range promptHistory {
-		if doc.Role == "user" {
-			promptBuilder.WriteString(fmt.Sprintf("On %v, the user has reported the following", doc.CreatedAt))
-			promptBuilder.WriteString(doc.Text)
-			promptBuilder.WriteString("\n\n")
-		}
+~~~
 
-		if doc.Role == "model" {
-			promptBuilder.WriteString(fmt.Sprintf("At this point, you have concluded that the below are the details of the resume in valid JSON escaped string format: %s", doc.Text))
-			promptBuilder.WriteString("\n\n")
-		}
-	}
-
-	// Add the new experience prompt into the end of the prompt
-	promptBuilder.WriteString(
-		fmt.Sprintf(`
-			The user has reported another skill, work summary, personal project, or education update. The update is bound within three tilde
-			~~~
-			%s
-			~~~
-			Please take note of this report and generate the newest, most appropriate JSON object for the work that the user has done based on all of the context above. 
-		`, newExperience))
-
-	return promptBuilder.String()
+Once you have updated the appropriate sections of the resume can you please provide a JSON log of what was changed in the resume. Please do not format the response in markdown and no backticks of any sort
+`, userId, newExperience)
 }
 
 func GetGenerateResumePrompt(userId string, resumeDetails string) string {

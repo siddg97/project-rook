@@ -17,8 +17,9 @@ function Home() {
       setIsUploadingResume(true);
       const selectedFile: File = e.target.files[0];
       const uid = auth.authenticatedUser.uid;
-      await uploadResume(selectedFile, uid, local);
+      const resp = await uploadResume(selectedFile, uid, local);
       setIsUploadingResume(false);
+      console.log(resp.data);
     }
   };
 
