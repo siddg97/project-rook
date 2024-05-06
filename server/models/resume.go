@@ -3,6 +3,7 @@ package models
 import "mime/multipart"
 
 type CreateResumeRequest struct {
+	UserId string
 	Resume *multipart.FileHeader
 }
 
@@ -14,6 +15,7 @@ type CreateResumeResponse struct {
 
 type UpdateResumeRequest struct {
 	Experience string `json:"experience"`
+	UserId     string
 }
 
 type UpdateResumeResponse struct {

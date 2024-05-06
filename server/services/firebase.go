@@ -70,7 +70,10 @@ func (s *FirebaseService) GetResumePromptHistory(userId string) ([]models.Prompt
 	var promptHistoryDocs []models.PromptHistoryDocument
 	for _, docRef := range promptHistory {
 		var doc models.PromptHistoryDocument
-		docRef.DataTo(&doc)
+		err := docRef.DataTo(&doc)
+		if err != nil {
+			return nil, err
+		}
 		promptHistoryDocs = append(promptHistoryDocs, doc)
 	}
 

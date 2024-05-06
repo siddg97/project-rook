@@ -3,11 +3,11 @@ package handlers
 import (
 	"encoding/json"
 	"fmt"
-	"io"
-	"net/http"
-
+	"github.com/siddg97/project-rook/constants"
 	"github.com/siddg97/project-rook/models"
 	"github.com/siddg97/project-rook/services"
+	"io"
+	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog/log"
@@ -15,32 +15,17 @@ import (
 
 func CreateResume(visionService *services.VisionService, firebaseService *services.FirebaseService, geminiService *services.GeminiService) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		// Source userId from path param
-		userId := c.Param("userId")
-		log.Info().Msgf("Processing resume creation request for user: %s", userId)
+		// Extract validated request from context
+		ctxRequestValue, _ := c.Get(constants.CreateResumeRequestContextKey)
+		createResumeRequest := ctxRequestValue.(*models.CreateResumeRequest)
+		userId := createResumeRequest.UserId
 
-		// Source PDF file from request
-		requestFile, err := c.FormFile("file")
-		if err != nil {
-			log.Error().Msgf("Could not find `file` attached from incoming request: %v", err)
-			c.JSON(http.StatusBadRequest, &models.ErrorResponse{Message: "No file found in request"})
-			return
-		}
-
-		createResumeRequest := models.CreateResumeRequest{
-			Resume: requestFile,
-		}
-
-		if createResumeRequest.Resume == nil {
-			c.JSON(http.StatusBadRequest, &models.ErrorResponse{Message: "Resume file is not attached to the CreateResume request"})
-			return
-		}
-
+		// Open file
 		openedResume, _ := createResumeRequest.Resume.Open()
-		filename := requestFile.Filename
+		filename := createResumeRequest.Resume.Filename
 		log.Info().Msgf("Opened file %v in CreateResumeRequest", filename)
 
-		ResumePdfContent, err := io.ReadAll(openedResume)
+		resumePdfContent, err := io.ReadAll(openedResume)
 		if err != nil {
 			log.Error().Msgf("Error to read file %s: %v", filename, err)
 			c.JSON(http.StatusBadRequest, &models.ErrorResponse{Message: "Failed to read attached resume file. Ensure that the file type is PDF"})
@@ -48,7 +33,7 @@ func CreateResume(visionService *services.VisionService, firebaseService *servic
 		}
 
 		// Extract text from PDF file via GCP Vision APIs
-		extractedResumeText, err := visionService.ExtractTextFromPdf(ResumePdfContent)
+		extractedResumeText, err := visionService.ExtractTextFromPdf(resumePdfContent)
 		if err != nil {
 			log.Error().Msgf("Encountered error when trying to extract text from PDF file: %v", err)
 			c.JSON(http.StatusInternalServerError, &models.ErrorResponse{Message: "Failed to extract text from resume"})
@@ -107,27 +92,10 @@ func CreateResume(visionService *services.VisionService, firebaseService *servic
 
 func UpdateResume(firebaseService *services.FirebaseService, geminiService *services.GeminiService) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		// Source userId from path param
-		userId := c.Param("userId")
-		log.Info().Msgf("Processing resume update request for user: %s", userId)
-
-		// Bind request body to UpdateResumeRequest struct
-		var updateResumeRequest models.UpdateResumeRequest
-		if err := c.ShouldBindJSON(&updateResumeRequest); err != nil {
-			// Bad Request for non-JSON body
-			log.Error().Msgf("Received UpdateResume request with non-JSON body")
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid JSON payload"})
-			return
-		}
-
-		// Check if required fields are present
-		if updateResumeRequest.Experience == "" {
-			log.Error().Msgf("Received UpdateResume request with malformed JSON body: %v", updateResumeRequest)
-			c.JSON(http.StatusBadRequest, &models.ErrorResponse{Message: "Missing or empty required field"})
-			return
-		}
-
-		log.Info().Msgf("Received UpdateResume request with experience: %v", updateResumeRequest.Experience)
+		// Extract validated request from context
+		ctxRequestValue, _ := c.Get(constants.UpdateResumeRequestContextKey)
+		updateResumeRequest := ctxRequestValue.(*models.UpdateResumeRequest)
+		userId := updateResumeRequest.UserId
 
 		// Retrieve prompt history for the user
 		promptHistory, err := firebaseService.GetResumePromptHistory(userId)
