@@ -11,8 +11,6 @@ func SetupRoutes(router *gin.Engine, visionService *services.VisionService, fire
 
 	versionOne := router.Group("/v1")
 	{
-		versionOne.GET("/story", handlers.GenerateStory(geminiService))
-
 		/**
 		1. Receives user id as a path param
 		2. Receives file as a key value pair in the body
