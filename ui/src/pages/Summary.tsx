@@ -59,7 +59,7 @@ function Summary() {
   ) as ResumeSummary;
 
   const resumeProfile = (
-    <Card isBlurred isHoverable className='w-full'>
+    <Card isBlurred className='w-full'>
       <CardHeader className='flex flex-col items-start'>
         <p className='text-xl text-default-900'>
           {latestResumeDetails.profile.name}
@@ -71,7 +71,6 @@ function Summary() {
           {latestResumeDetails.profile.phone}
         </p>
       </CardHeader>
-      <Divider />
       <CardBody>
         <div className='flex flex-col'>
           <p className='text-default-600'>{latestResumeDetails.summary}</p>
@@ -81,7 +80,7 @@ function Summary() {
   );
 
   const resumeSkills = (
-    <Card isBlurred isHoverable className='w-full'>
+    <Card isBlurred className='w-full'>
       <CardHeader className='text-lg text-default-900'>Skills</CardHeader>
       <Divider />
       <CardBody>
@@ -124,15 +123,46 @@ function Summary() {
   );
 
   const resumeExperience = (
-    <Card isBlurred isHoverable className='w-full'>
+    <Card isBlurred className='w-full'>
       <CardHeader className='text-lg text-default-900'>Experience</CardHeader>
       <Divider />
-      <CardBody>{JSON.stringify(latestResumeDetails.experience)}</CardBody>
+      <CardBody>
+        <Accordion selectionMode='multiple'>
+          {latestResumeDetails.experience.map((xp, index) => {
+            return (
+              <AccordionItem
+                key={`${xp.company}-${index}`}
+                title={xp.company}
+                subtitle={<span>{xp.positions.length} position(s)</span>}
+              >
+                {xp.positions.map(position => (
+                  <div
+                    className='pt-4'
+                    key={`${position.title}-${position.duration}`}
+                  >
+                    <strong>{position.title}</strong> | {position.duration}
+                    <br />
+                    <ul>
+                      {position.responsibilities.map((r, i) => (
+                        <li
+                          key={`${position.title}-${position.duration}-responsibility-${i}`}
+                        >
+                          - {r}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </AccordionItem>
+            );
+          })}
+        </Accordion>
+      </CardBody>
     </Card>
   );
 
   const resumeEducation = (
-    <Card isBlurred isHoverable className='w-full'>
+    <Card isBlurred className='w-full'>
       <CardHeader className='text-lg text-default-900'>Education</CardHeader>
       <Divider />
       <CardBody>{JSON.stringify(latestResumeDetails.education)}</CardBody>

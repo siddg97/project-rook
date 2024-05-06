@@ -100,11 +100,6 @@ function SidebarWithGradient({ children, header }: Props) {
           }}
           variant='flat'
         />
-      </ScrollShadow>
-
-      <Spacer y={8} />
-
-      <div className='mt-auto flex flex-col'>
         <Button
           className='justify-start text-default-600 data-[hover=true]:text-black'
           startContent={
@@ -119,7 +114,7 @@ function SidebarWithGradient({ children, header }: Props) {
         >
           Log Out
         </Button>
-      </div>
+      </ScrollShadow>
     </div>
   );
 
