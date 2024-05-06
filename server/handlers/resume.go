@@ -6,6 +6,8 @@ import (
 	"github.com/siddg97/project-rook/constants"
 	"github.com/siddg97/project-rook/models"
 	"github.com/siddg97/project-rook/services"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 	"io"
 	"net/http"
 
@@ -106,7 +108,7 @@ func UpdateResume(firebaseService *services.FirebaseService, geminiService *serv
 		}
 		if len(promptHistory) < 2 {
 			log.Error().Msgf("Expected at least 2 resume prompts before update request can be processed, but found %s prompt(s)", len(promptHistory))
-			c.JSON(http.StatusBadRequest, models.ErrorResponse{Message: fmt.Sprintf("Expected at least 2 resume prompts before update request can be processed, but found %s prompt(s)", len(promptHistory))})
+			c.JSON(http.StatusBadRequest, models.ErrorResponse{Message: fmt.Sprintf("Expected at least 2 resume prompts before update request can be processed, but found %v prompt(s)", len(promptHistory))})
 			return
 		}
 
@@ -170,6 +172,12 @@ func GetResume(firebaseService *services.FirebaseService) gin.HandlerFunc {
 		resume, err := firebaseService.GetResume(userId)
 		if err != nil {
 			log.Err(err).Msgf("Could not fetch resume for user: %s", userId)
+
+			errCode := status.Code(err)
+			if errCode == codes.NotFound {
+				c.JSON(http.StatusNotFound, models.ErrorResponse{Message: fmt.Sprintf("No resume for user %s found", userId)})
+				return
+			}
 			c.JSON(http.StatusInternalServerError, models.ErrorResponse{Message: "Something failed while getting data"})
 			return
 		}
@@ -177,8 +185,14 @@ func GetResume(firebaseService *services.FirebaseService) gin.HandlerFunc {
 		promptHistory, err := firebaseService.GetResumePromptHistory(userId)
 		if err != nil {
 			log.Err(err).Msgf("Could not fetch resume prompt history for user: %s", userId)
-			c.JSON(http.StatusInternalServerError, models.ErrorResponse{Message: "Something failed while getting data"})
-			return
+
+			errCode := status.Code(err)
+			if errCode == codes.NotFound {
+				promptHistory = make([]models.PromptHistoryDocument, 0)
+			} else {
+				c.JSON(http.StatusInternalServerError, models.ErrorResponse{Message: "Something failed while getting data"})
+				return
+			}
 		}
 
 		c.JSON(http.StatusOK, models.GetResumeResponse{
