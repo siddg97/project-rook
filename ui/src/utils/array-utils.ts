@@ -1,3 +1,3 @@
-export function randomElementFrom(arr: any[]): any {
+export function randomElementFrom<T>(arr: T[]): T {
   return arr[Math.floor(Math.random() * arr.length)];
 }

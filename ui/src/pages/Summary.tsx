@@ -87,12 +87,19 @@ function Summary() {
       <CardBody>
         {Object.entries(latestResumeDetails.skills).map(
           ([category, skills]) => {
-            const categoryColor = randomElementFrom([
+            const categoryColor:
+              | 'default'
+              | 'primary'
+              | 'secondary'
+              | 'success'
+              | 'warning'
+              | 'danger' = randomElementFrom([
               'warning',
               'success',
               'danger',
               'primary',
               'secondary',
+              'default',
             ]);
             return (
               <div key={`category-${category}`} className='pt-2'>

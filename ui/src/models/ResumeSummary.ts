@@ -9,7 +9,7 @@ export interface ResumeSummary {
 
 export interface Profile {
   name: string;
-  website: any;
+  website: string;
   phone: string;
   email: string;
 }
@@ -25,7 +25,7 @@ export interface Education {
 
 export interface Experience {
   company: string;
-  location: any;
+  location: string;
   positions: Position[];
 }
 
