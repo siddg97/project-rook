@@ -84,13 +84,13 @@ func CreateResume(visionService *services.VisionService, firebaseService *servic
 		}
 
 		// Store gemini prompt and response to prompt history in db
-		err = firebaseService.StoreToPromptHistory(userId, initialContextPrompt, "user")
+		err = firebaseService.StoreToPromptHistory(userId, initialContextPrompt, "user", extractedResumeText)
 		if err != nil {
 			log.Err(err).Msg("Could not store resume context initial prompt from gemini to firebase")
 			c.JSON(http.StatusInternalServerError, models.ErrorResponse{Message: "Error storing resume context prompt in db"})
 			return
 		}
-		err = firebaseService.StoreToPromptHistory(userId, summarizedResumeDetails, "model")
+		err = firebaseService.StoreToPromptHistory(userId, summarizedResumeDetails, "model", extractedResumeText)
 		if err != nil {
 			log.Err(err).Msg("Could not store resume context prompt response from gemini to firebase")
 			c.JSON(http.StatusInternalServerError, models.ErrorResponse{Message: "Error storing resume context prompt response in db"})
@@ -165,13 +165,13 @@ func UpdateResume(firebaseService *services.FirebaseService, geminiService *serv
 		log.Info().Msgf("Received response from Gemini after adding new experience: %v", resumeDetails)
 
 		// Store gemini prompt and response to prompt history in db
-		err = firebaseService.StoreToPromptHistory(userId, addExperiencePrompt, "user")
+		err = firebaseService.StoreToPromptHistory(userId, addExperiencePrompt, "user", updateResumeRequest.Experience)
 		if err != nil {
 			log.Err(err).Msg("Could not store resume context initial prompt from gemini to firebase")
 			c.JSON(http.StatusInternalServerError, models.ErrorResponse{Message: "Error storing resume context prompt in db"})
 			return
 		}
-		err = firebaseService.StoreToPromptHistory(userId, newResumeDetails, "model")
+		err = firebaseService.StoreToPromptHistory(userId, newResumeDetails, "model", updateResumeRequest.Experience)
 		if err != nil {
 			log.Err(err).Msg("Could not store resume context prompt response from gemini to firebase")
 			c.JSON(http.StatusInternalServerError, models.ErrorResponse{Message: "Error storing resume context prompt response in db"})

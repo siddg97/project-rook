@@ -81,7 +81,7 @@ func (s *FirebaseService) GetResumePromptHistory(userId string) ([]models.Prompt
 	return promptHistoryDocs, nil
 }
 
-func (s *FirebaseService) StoreToPromptHistory(userId string, promptText string, role string) error {
+func (s *FirebaseService) StoreToPromptHistory(userId string, promptText string, role string, input string) error {
 	promptHistorySubCollectionRef := s.FirestoreClient.Collection(resumeCollection).Doc(userId).Collection(promptHistorySubCollection)
 
 	latestPromptDocRef := promptHistorySubCollectionRef.NewDoc()
@@ -90,6 +90,7 @@ func (s *FirebaseService) StoreToPromptHistory(userId string, promptText string,
 		CreatedAt: time.Now(),
 		Role:      role,
 		Text:      promptText,
+		Input:     input,
 	})
 	if err != nil {
 		log.Err(err).Msgf("Failed to write to prompt history for user: %s", userId)

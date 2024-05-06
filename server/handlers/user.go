@@ -40,13 +40,13 @@ func GetUserSummary(firebaseService *services.FirebaseService, geminiService *se
 		}
 
 		// Save the summary prompt and gemini response to prompt history in db
-		err = firebaseService.StoreToPromptHistory(userId, summarizePromptText, "user")
+		err = firebaseService.StoreToPromptHistory(userId, summarizePromptText, "user", "")
 		if err != nil {
 			log.Err(err).Msg("Could not store summarize resume prompt for gemini to firebase")
 			c.JSON(http.StatusInternalServerError, models.ErrorResponse{Message: "Error storing summarize resume prompt in db"})
 			return
 		}
-		err = firebaseService.StoreToPromptHistory(userId, summary, "model")
+		err = firebaseService.StoreToPromptHistory(userId, summary, "model", "")
 		if err != nil {
 			log.Err(err).Msg("Could not store summarize resume response from gemini to firebase")
 			c.JSON(http.StatusInternalServerError, models.ErrorResponse{Message: "Error storing summarize resume prompt response in db"})

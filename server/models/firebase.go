@@ -13,4 +13,5 @@ type PromptHistoryDocument struct {
 	CreatedAt time.Time `firebase:"createdAt" json:"createdAt"`
 	Role      string    `firebase:"role" json:"role"`
 	Text      string    `firebase:"text" json:"text"`
+	Input     string    `firebase:"input" json:"input"`
 }
