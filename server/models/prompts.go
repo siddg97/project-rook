@@ -16,7 +16,7 @@ type ModelResumeDetails struct {
 	} `json:"profile"`
 	Summary   string              `json:"summary"`
 	Skills    map[string][]string `json:"skills"`
-	Education struct {
+	Education []struct {
 		Institution string   `json:"institution"`
 		Location    string   `json:"location"`
 		Degree      string   `json:"degree"`
@@ -58,7 +58,7 @@ Please keep note of this initial resume state going forward and expect new work 
 - "profile": an ojbect that has "name", "website", "phone" and "email" keys
 - "summary": a summary of the resume in a few lines
 - "skills": an object that has keys that denate a skill category and then the value of these keys to be a lis tof strings
-- "education": an object with "institution", "location", "degree", "major", "graduation" and "gpa" keys
+- "education": an array of objects. each object has "institution", "location", "degree", "major", "graduation", "gpa" and "awards" keys
 - "experience": array of objects. Each object has "company", "location" and "postions" keys. "positions" is an array of objects that contain "title", "duration", and "responsibilities" keys
 
 Please do not format the response in markdown and no backticks of any sort
