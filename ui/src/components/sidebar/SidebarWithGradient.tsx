@@ -83,7 +83,7 @@ function SidebarWithGradient({ children, header }: Props) {
       <Spacer y={8} />
       {userDetails}
 
-      <ScrollShadow className='-mr-6 h-full max-h-full py-6 pr-6'>
+      <ScrollShadow className='-mr-6 h-full min-h-full py-6 pr-6'>
         <Sidebar
           defaultSelectedKey='home'
           iconClassName='text-default-600 group-data-[selected=true]:text-foreground'
@@ -122,7 +122,7 @@ function SidebarWithGradient({ children, header }: Props) {
   );
 
   return (
-    <div className='flex h-dvh w-full'>
+    <div className='flex min-h-full w-full'>
       <SidebarDrawer
         className='flex-none'
         isOpen={isOpen}
@@ -130,7 +130,7 @@ function SidebarWithGradient({ children, header }: Props) {
       >
         {drawerContent}
       </SidebarDrawer>
-      <div className='flex w-full flex-col gap-y-4 p-4 sm:max-w-[calc(100%_-_288px)]'>
+      <div className='flex w-full min-h-full flex-col gap-y-4 p-4 sm:max-w-[calc(100%_-_288px)]'>
         <header className='flex h-16 min-h-16 items-center justify-between gap-2 overflow-x-scroll rounded-medium border-small border-divider px-4 py-2'>
           <div className='flex max-w-full items-center gap-2'>
             <Button

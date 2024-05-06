@@ -4,6 +4,7 @@ import { devtools } from 'zustand/middleware';
 import { immer } from 'zustand/middleware/immer';
 import { User } from 'firebase/auth';
 import { initializeFirebase } from '../utils';
+import { isLocalEnv } from '../utils';
 
 interface AppStore {
   env: {
@@ -25,7 +26,7 @@ export const useStore = create<AppStore>()(
   devtools(
     immer(_set => ({
       env: {
-        local: window.location.host.includes('localhost'),
+        local: isLocalEnv(),
       },
       firebase: {
         app: initializeFirebase(),

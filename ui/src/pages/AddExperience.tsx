@@ -8,7 +8,7 @@ import {
 } from '@nextui-org/react';
 import { useState } from 'react';
 import { useStore } from '../hooks/useStore';
-import { submitExperience } from '../utils/api-utils';
+import { submitExperience } from '../utils';
 
 function AddExperience() {
   const [experience, setExperience] = useState<string>('');
@@ -18,17 +18,14 @@ function AddExperience() {
     useState<boolean>(false);
   const [showExperienceSubmitFailedModal, setShowExperienceSubmitFailedModal] =
     useState<boolean>(false);
-  const {
-    auth,
-    env: { local },
-  } = useStore();
+  const { auth } = useStore();
 
   const handleSubmitExperience = async () => {
     const uid = auth.authenticatedUser ? auth.authenticatedUser.uid : null;
     if (uid) {
       setIsSubmittingExperience(true);
       try {
-        const resp = await submitExperience(experience, uid, local);
+        const resp = await submitExperience(experience, uid);
         console.log(`Submitted experience. Response: ${JSON.stringify(resp)}`);
         setIsSubmittingExperience(false);
         setShowExperienceSubmittedModal(true);

@@ -96,7 +96,7 @@ const SidebarDrawer = forwardRef<
         </Modal>
         <div
           className={cn(
-            'hidden h-full max-w-[var(--sidebar-width)] overflow-x-hidden overflow-y-scroll sm:flex',
+            'hidden min-h-full max-w-[var(--sidebar-width)] overflow-x-hidden overflow-y-scroll sm:flex',
             className
           )}
         >

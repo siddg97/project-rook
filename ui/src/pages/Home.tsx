@@ -1,13 +1,10 @@
 import { Button, Spinner } from '@nextui-org/react';
 import { ChangeEvent, useState } from 'react';
-import { uploadResume } from '../utils/api-utils';
+import { uploadResume } from '../utils';
 import { useStore } from '../hooks/useStore';
 
 function Home() {
-  const {
-    auth,
-    env: { local },
-  } = useStore();
+  const { auth } = useStore();
 
   const [isUploadingResume, setIsUploadingResume] = useState<boolean>(false);
 
@@ -17,7 +14,7 @@ function Home() {
       setIsUploadingResume(true);
       const selectedFile: File = e.target.files[0];
       const uid = auth.authenticatedUser.uid;
-      const resp = await uploadResume(selectedFile, uid, local);
+      const resp = await uploadResume(selectedFile, uid);
       setIsUploadingResume(false);
       console.log(resp.data);
     }
