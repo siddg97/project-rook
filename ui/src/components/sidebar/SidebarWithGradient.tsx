@@ -78,14 +78,16 @@ function SidebarWithGradient({ children, header }: Props) {
   };
 
   const drawerContent = (
-    <div className='relative flex min-h-full w-72 flex-1 flex-col bg-gradient-to-b from-default-100 via-danger-100 to-secondary-100 p-6'>
+    <div className='relative flex min-h-screen w-72 flex-1 flex-col bg-gradient-to-b from-default-100 via-danger-100 to-secondary-100 p-6'>
       {rookIcon}
       <Spacer y={8} />
       {userDetails}
 
       <ScrollShadow className='-mr-6 h-full min-h-full py-6 pr-6'>
         <Sidebar
-          defaultSelectedKey='home'
+          defaultSelectedKey={
+            sectionItems.find(i => i.href === location.pathname)?.key || 'home'
+          }
           iconClassName='text-default-600 group-data-[selected=true]:text-foreground'
           itemClasses={{
             base: 'data-[selected=true]:bg-default-400/20 data-[hover=true]:bg-default-400/10',

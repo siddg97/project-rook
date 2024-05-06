@@ -9,17 +9,13 @@ type Props = {
 function PageContainer({ children }: Props) {
   const auth = useStore(state => state.auth);
 
-  if (!auth.isLoggedIn) {
-    return (
-      <div className='flex min-h-screen min-w-full justify-center justify-items-center items-center container mx-auto flex-grow'>
-        {children}
-      </div>
-    );
-  }
-
   return (
     <div className='flex min-h-screen min-w-full justify-center justify-items-center items-center container mx-auto flex-grow'>
-      <SidebarWithGradient>{children}</SidebarWithGradient>
+      {!auth.isLoggedIn ? (
+        children
+      ) : (
+        <SidebarWithGradient>{children}</SidebarWithGradient>
+      )}
     </div>
   );
 }

@@ -12,7 +12,7 @@ import {
   ListboxSection,
 } from '@nextui-org/react';
 import { Icon } from '@iconify/react';
-import { forwardRef, Key, ReactNode, useCallback, useState } from 'react';
+import { forwardRef, ReactNode, useCallback, useState } from 'react';
 import { cn } from '../../utils';
 
 export enum SidebarItemType {
@@ -59,7 +59,9 @@ const Sidebar = forwardRef<HTMLElement, SidebarProps>(
     },
     ref
   ) => {
-    const [selected, setSelected] = useState<Key>(defaultSelectedKey);
+    const [selected, setSelected] = useState<Selection>(
+      new Set([defaultSelectedKey])
+    );
 
     const sectionClasses = {
       ...sectionClassesProp,
@@ -264,9 +266,8 @@ const Sidebar = forwardRef<HTMLElement, SidebarProps>(
       <Listbox
         key={isCompact ? 'compact' : 'default'}
         ref={ref}
-        hideSelectedIcon
+        disallowEmptySelection
         as='nav'
-        className={cn('list-none', className)}
         classNames={{
           ...classNames,
           list: cn('items-center', classNames?.list),
@@ -284,15 +285,10 @@ const Sidebar = forwardRef<HTMLElement, SidebarProps>(
           ),
         }}
         items={items}
-        selectedKeys={[selected] as unknown as Selection}
+        selectedKeys={selected}
         selectionMode='single'
         variant='flat'
-        onSelectionChange={keys => {
-          const key = Array.from(keys)[0];
-
-          setSelected(key as Key);
-          onSelect?.(key as string);
-        }}
+        onSelectionChange={setSelected}
         {...props}
       >
         {item => {
