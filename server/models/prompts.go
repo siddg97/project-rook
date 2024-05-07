@@ -59,7 +59,7 @@ Please keep note of this initial resume state going forward and expect new work 
 - "summary": a summary of the resume in a few lines
 - "skills": an object that has keys that denate a skill category and then the value of these keys to be a lis tof strings
 - "education": an array of objects. each object has "institution", "location", "degree", "major", "graduation", "gpa" and "awards" keys
-- "experience": array of objects. Each object has "company", "location" and "postions" keys. "positions" is an array of objects that contain "title", "duration", and "responsibilities" keys
+- "experience": array of objects. Each object has keys "company", "location" and "postions" keys. "positions" is an array of objects that where each object contains keys "title", "duration", and "responsibilities".
 
 Please do not format the response in markdown and no backticks of any sort
 `, userId, extractedResumeText)
@@ -75,7 +75,15 @@ Based on the current state of resume for user %s, please add the folowing new ex
 
 ~~~
 
-Once you have updated the appropriate sections of the resume can you please provide the JSON equivalent of the updated resume as described. Only include JSON document with markdown formatting.
+Once you have updated relevant sections of the resume. Can you please summarize this resume in a JSON document. JSON document should have the following keys:
+- "id": the id of the user
+- "profile": an ojbect that has "name", "website", "phone" and "email" keys
+- "summary": a summary of the resume in a few lines
+- "skills": an object that has keys that denate a skill category and then the value of these keys to be a lis tof strings
+- "education": an array of objects. each object has "institution", "location", "degree", "major", "graduation", "gpa" and "awards" keys
+- "experience": array of objects. Each object has keys "company", "location" and "postions" keys. "positions" is an array of objects that where each object contains keys "title", "duration", and "responsibilities".
+
+Please do not format the response in markdown and no backticks of any . Make sure the "experience" key is correctly formatted, your previous responses have incorrect formatting
 `, userId, newExperience)
 }
 
