@@ -40,7 +40,7 @@ module.exports = {
     '@typescript-eslint/triple-slash-reference': 'off',
     '@typescript-eslint/no-non-null-assertion': 'off',
     '@typescript-eslint/ban-ts-comment': 'off',
-    'react/prop-types': 'warn',
+    'react/prop-types': 'off', // We use typescript already so this is useless
     '@typescript-eslint/no-unused-vars': 'off',
   },
 };
