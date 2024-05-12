@@ -3,7 +3,7 @@ export interface ResumeSummary {
   profile: Profile;
   summary: string;
   skills: Record<string, string[]>;
-  education: Education;
+  education: Education[];
   experience: Experience[];
 }
 
@@ -21,6 +21,7 @@ export interface Education {
   major: string;
   graduation: string;
   gpa: string;
+  awards: string[];
 }
 
 export interface Experience {

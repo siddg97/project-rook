@@ -10,8 +10,9 @@ import {
   CardHeader,
   Chip,
   Divider,
-  Spacer,
   Spinner,
+  Tab,
+  Tabs,
 } from '@nextui-org/react';
 
 function Summary() {
@@ -165,7 +166,27 @@ function Summary() {
     <Card isBlurred className='w-full'>
       <CardHeader className='text-lg text-default-900'>Education</CardHeader>
       <Divider />
-      <CardBody>{JSON.stringify(latestResumeDetails.education)}</CardBody>
+      <CardBody>
+        <Accordion selectionMode='multiple'>
+          {latestResumeDetails.education.map((ed, index) => {
+            return (
+              <AccordionItem
+                key={`${ed.institution}-${index}`}
+                title={ed.institution}
+                subtitle={<span>{ed.location}</span>}
+              >
+                <div className='pt-4'>
+                  <strong>
+                    {ed.degree} - {ed.major}
+                  </strong>
+                  <br />
+                  <p>Graduation: ${ed.graduation}</p>
+                </div>
+              </AccordionItem>
+            );
+          })}
+        </Accordion>
+      </CardBody>
     </Card>
   );
 
@@ -180,9 +201,14 @@ function Summary() {
 
   return (
     <div className='w-full min-h-full'>
-      {latestResume}
-      <Spacer y={6} />
-      {promptHistory}
+      <Tabs>
+        <Tab key='resume' title='Resume'>
+          {latestResume}
+        </Tab>
+        <Tab key='activity-log' title='Activity Log'>
+          {promptHistory}
+        </Tab>
+      </Tabs>
     </div>
   );
 }
